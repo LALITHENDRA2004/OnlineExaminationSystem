@@ -13,7 +13,6 @@ public class Quiz {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long qId;
 
-
     private String title;
 
     @Column(length = 5000)
@@ -24,7 +23,6 @@ public class Quiz {
     private Integer numberOfQuestions;
 
     private boolean active = false;
-    //add..
 
     @ManyToOne(fetch = FetchType.EAGER)
     private Category category;
@@ -32,7 +30,6 @@ public class Quiz {
     @OneToMany(mappedBy = "quiz", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
     private Set<Question> questions = new HashSet<>();
-
 
     public Quiz() {
     }

@@ -39,7 +39,8 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public Quiz getQuiz(Long quizId) {
-        return this.quizRepository.findById(quizId).get();
+        return this.quizRepository.findById(quizId)
+            .orElseThrow(() -> new RuntimeException("Quiz not found with id: " + quizId));
     }
 
     @Override
@@ -59,9 +60,6 @@ public class QuizServiceImpl implements QuizService {
         return this.quizRepository.findBycategory(category);
     }
 
-
-    //get active quizzes
-
     @Override
     public List<Quiz> getActiveQuizzes() {
         return this.quizRepository.findByActive(true);
@@ -71,5 +69,4 @@ public class QuizServiceImpl implements QuizService {
     public List<Quiz> getActiveQuizzesOfCategory(Category c) {
         return this.quizRepository.findByCategoryAndActive(c, true);
     }
-
 }

@@ -32,23 +32,23 @@ public class QuestionServiceImpl implements QuestionService {
         ).orElseThrow(() -> new RuntimeException("Quiz not found"));
 
         if (
-                question.getContent() == null ||
-                question.getOption1() == null ||
-                question.getOption2() == null ||
-                question.getOption3() == null ||
-                question.getOption4() == null ||
-                question.getAnswer() == null
+                question.getContent() == null || question.getContent().trim().isEmpty() ||
+                question.getOption1() == null || question.getOption1().trim().isEmpty() ||
+                question.getOption2() == null || question.getOption2().trim().isEmpty() ||
+                question.getOption3() == null || question.getOption3().trim().isEmpty() ||
+                question.getOption4() == null || question.getOption4().trim().isEmpty() ||
+                question.getAnswer() == null || question.getAnswer().trim().isEmpty()
         ) {
             throw new RuntimeException("All question fields are required");
         }
 
-        if (!Set.of(
-                question.getOption1(),
-                question.getOption2(),
-                question.getOption3(),
-                question.getOption4()
-        ).contains(question.getAnswer())) {
-            throw new RuntimeException("Answer must match one of the options");
+        // Validate that answer matches one of the options (case-insensitive and trimmed)
+        String answer = question.getAnswer().trim();
+        if (!answer.equalsIgnoreCase(question.getOption1().trim()) &&
+            !answer.equalsIgnoreCase(question.getOption2().trim()) &&
+            !answer.equalsIgnoreCase(question.getOption3().trim()) &&
+            !answer.equalsIgnoreCase(question.getOption4().trim())) {
+            throw new RuntimeException("Answer must match one of the options exactly");
         }
 
         question.setQuiz(quiz);
