@@ -5,47 +5,91 @@
  * - Displays detailed information about a specific quiz
  * - Shows quiz instructions before student starts the quiz
  * 
- * TODO: Fetch quiz details from backend API using quiz ID from URL params
- * TODO: Add navigation logic to start quiz (redirect to QuizAttempt page)
  * TODO: Check if student has already attempted this quiz
  * TODO: Display quiz status (active/inactive)
- * TODO: Add loading state while fetching quiz data
  */
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { getQuiz } from '../../services/questionService';
 
 function QuizDetail() {
-  // TODO: Get quiz ID from URL params using useParams hook
-  // TODO: Fetch quiz details from backend API using the quiz ID
+  const { id } = useParams();
+  const navigate = useNavigate();
+  
+  const [quiz, setQuiz] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // TODO: Replace with actual data from backend API
-  const quiz = {
-    id: 1,
-    title: "Java Basics Test",
-    description: "This quiz covers fundamental concepts of Java programming including data types, control structures, object-oriented programming principles, and basic syntax. Test your understanding of core Java concepts.",
-    category: "Programming",
-    numberOfQuestions: 10,
-    maxMarks: 100,
-    timeLimit: 15
+  useEffect(() => {
+    fetchQuiz();
+  }, [id]);
+
+  const fetchQuiz = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getQuiz(id);
+      
+      if (!data.active) {
+        setError('This quiz is not currently active.');
+        return;
+      }
+      
+      setQuiz(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-lg text-slate-600">Loading quiz details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-lg text-red-600 mb-4">Error: {error}</p>
+            <Link
+              to="/quizzes"
+              className="inline-block px-6 py-3 bg-indigo-700 text-white font-semibold rounded-lg hover:bg-indigo-800 transition-colors duration-200"
+            >
+              Back to Quizzes
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!quiz) {
+    return null;
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
-      {/* Header Section */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-slate-800 mb-3">{quiz.title}</h1>
         <p className="text-lg text-slate-600 leading-relaxed">{quiz.description}</p>
       </div>
 
-      {/* Quiz Information Card */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 mb-8">
         <h2 className="text-2xl font-bold text-slate-800 mb-6">Quiz Information</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
             <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Category</span>
-            <span className="text-lg font-bold text-indigo-700">{quiz.category}</span>
+            <span className="text-lg font-bold text-indigo-700">{quiz.category?.title || 'N/A'}</span>
           </div>
           
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
@@ -60,12 +104,11 @@ function QuizDetail() {
           
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
             <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Time Limit</span>
-            <span className="text-lg font-bold text-slate-800">{quiz.timeLimit} minutes</span>
+            <span className="text-lg font-bold text-slate-800">No limit</span>
           </div>
         </div>
       </div>
 
-      {/* Instructions Section */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-8">
         <h3 className="text-xl font-bold text-slate-800 mb-4">Instructions</h3>
         <ul className="space-y-2 text-slate-700">
@@ -75,7 +118,7 @@ function QuizDetail() {
           </li>
           <li className="flex items-start">
             <span className="font-semibold mr-2">•</span>
-            <span>You have {quiz.timeLimit} minutes to complete all {quiz.numberOfQuestions} questions.</span>
+            <span>The quiz contains {quiz.numberOfQuestions} multiple-choice questions.</span>
           </li>
           <li className="flex items-start">
             <span className="font-semibold mr-2">•</span>
@@ -92,10 +135,9 @@ function QuizDetail() {
         </ul>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex items-center gap-4">
         <Link
-          to={`/quizzes/${quiz.id}/attempt`}
+          to={`/quizzes/${quiz.qId}/attempt`}
           className="flex-1 bg-indigo-700 text-white text-center font-bold text-lg py-4 rounded-lg hover:bg-indigo-800 transition-colors duration-200 shadow-md"
           aria-label="Start quiz"
         >

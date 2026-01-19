@@ -87,29 +87,37 @@ public class QuestionController {
         double marksGot = 0;
         int correctAnswers = 0;
         int attempted = 0;
+        
+        // Get the quiz from the first question to calculate marks
+        Quiz quiz = null;
+        if (!questions.isEmpty() && questions.get(0).getQuiz() != null) {
+            Long quizId = questions.get(0).getQuiz().getqId();
+            quiz = this.quizService.getQuiz(quizId);
+        }
+        
+        if (quiz == null || quiz.getMaxMarks() == null) {
+            return ResponseEntity.badRequest().body("Invalid quiz data");
+        }
+        
         for (Question q : questions) {
-            //single questions
             Question question = this.service.getQuestion(q.getQuesId());
             if (question.getAnswer().equals(q.getGivenAnswer())) {
-                //correct
                 correctAnswers++;
-
-                double marksSingle = questions.get(0).getQuiz().getMaxMarks().doubleValue() / questions.size();
-                //       this.questions[0].quiz.maxMarks / this.questions.length;
+                double marksSingle = quiz.getMaxMarks().doubleValue() / questions.size();
                 marksGot += marksSingle;
-
             }
 
             if (q.getGivenAnswer() != null) {
                 attempted++;
             }
-
         }
-        ;
 
-        Map<String, Object> map = Map.of("marksGot", marksGot, "correctAnswers", correctAnswers, "attempted", attempted);
+        Map<String, Object> map = Map.of(
+            "marksGot", marksGot, 
+            "correctAnswers", correctAnswers, 
+            "attempted", attempted
+        );
         return ResponseEntity.ok(map);
-
     }
 
 }

@@ -1,9 +1,27 @@
-// src/services/questionService.js
+import { BASE_URL } from './helper';
 
-export const getQuestionsByQuiz = async (quizId) => {
+export const getQuestionsForAdmin = async (quizId) => {
   const token = localStorage.getItem('token');
-  
-  const response = await fetch(`http://localhost:8080/question/quiz/all/${quizId}`, {  // ✅ Changed endpoint
+
+  const response = await fetch(`${BASE_URL}/question/quiz/all/${quizId}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch questions');
+  }
+
+  return await response.json();
+};
+
+export const getQuestionsForStudent = async (quizId) => {
+  const token = localStorage.getItem('token');
+
+  const response = await fetch(`${BASE_URL}/question/quiz/${quizId}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -21,8 +39,8 @@ export const getQuestionsByQuiz = async (quizId) => {
 
 export const createQuestion = async (question) => {
   const token = localStorage.getItem('token');
-  
-  const response = await fetch('http://localhost:8080/question/', {
+
+  const response = await fetch(`${BASE_URL}/question/`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -42,8 +60,8 @@ export const createQuestion = async (question) => {
 
 export const updateQuestion = async (question) => {
   const token = localStorage.getItem('token');
-  
-  const response = await fetch('http://localhost:8080/question/', {
+
+  const response = await fetch(`${BASE_URL}/question/`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -61,8 +79,8 @@ export const updateQuestion = async (question) => {
 
 export const deleteQuestion = async (questionId) => {
   const token = localStorage.getItem('token');
-  
-  const response = await fetch(`http://localhost:8080/question/${questionId}`, {
+
+  const response = await fetch(`${BASE_URL}/question/${questionId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -77,8 +95,8 @@ export const deleteQuestion = async (questionId) => {
 
 export const getQuiz = async (quizId) => {
   const token = localStorage.getItem('token');
-  
-  const response = await fetch(`http://localhost:8080/quiz/${quizId}`, {
+
+  const response = await fetch(`${BASE_URL}/quiz/${quizId}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,

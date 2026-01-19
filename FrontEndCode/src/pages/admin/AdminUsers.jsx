@@ -14,47 +14,45 @@
  * TODO: Add confirmation dialog before activating/deactivating users
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getAllUsers, deleteUser } from '../../services/userService';
 
 function AdminUsers() {
-  // TODO: Replace with actual data from backend API
-  const users = [
-    {
-      id: 1,
-      username: "john_doe",
-      email: "john.doe@example.com",
-      role: "STUDENT",
-      status: "ACTIVE"
-    },
-    {
-      id: 2,
-      username: "jane_smith",
-      email: "jane.smith@example.com",
-      role: "STUDENT",
-      status: "ACTIVE"
-    },
-    {
-      id: 3,
-      username: "admin_user",
-      email: "admin@example.com",
-      role: "ADMIN",
-      status: "ACTIVE"
-    },
-    {
-      id: 4,
-      username: "mike_jones",
-      email: "mike.jones@example.com",
-      role: "STUDENT",
-      status: "DISABLED"
-    },
-    {
-      id: 5,
-      username: "sarah_williams",
-      email: "sarah.williams@example.com",
-      role: "STUDENT",
-      status: "ACTIVE"
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllUsers();
+      // Ensure data is array before setting
+      if (Array.isArray(data)) {
+        setUsers(data);
+      } else {
+        console.error("Invalid users data received:", data);
+        setUsers([]);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const handleDelete = async (userId) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      try {
+        await deleteUser(userId);
+        setUsers(users.filter(u => u.id !== userId));
+      } catch (error) {
+        console.error("Error deleting user:", error);
+      }
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -64,7 +62,7 @@ function AdminUsers() {
           <h1 className="text-4xl font-bold text-slate-800 mb-2">Manage Users</h1>
           <p className="text-lg text-slate-600">View and manage all registered users in the system.</p>
         </div>
-        <button 
+        <button
           className="px-6 py-3 bg-indigo-700 text-white font-semibold rounded-lg hover:bg-indigo-800 transition-colors duration-200 shadow-sm"
           aria-label="Add new user"
         >
@@ -92,32 +90,30 @@ function AdminUsers() {
                 <td className="px-6 py-4 text-sm font-medium text-slate-800">{user.username}</td>
                 <td className="px-6 py-4 text-sm text-slate-700">{user.email}</td>
                 <td className="px-6 py-4">
-                  <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
-                    user.role === 'ADMIN' 
-                      ? 'bg-purple-100 text-purple-700' 
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
+                  <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${user.role === 'ADMIN'
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'bg-blue-100 text-blue-700'
+                    }`}>
                     {user.role}
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
-                    user.status === 'ACTIVE' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-red-100 text-red-700'
-                  }`}>
+                  <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${user.status === 'ACTIVE'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700'
+                    }`}>
                     {user.status}
                   </span>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <button 
+                    <button
                       className="px-4 py-2 bg-indigo-100 text-indigo-700 text-sm font-medium rounded-lg hover:bg-indigo-200 transition-colors duration-200"
                       aria-label={`View ${user.username}`}
                     >
                       View
                     </button>
-                    <button 
+                    <button
                       className="px-4 py-2 bg-red-100 text-red-700 text-sm font-medium rounded-lg hover:bg-red-200 transition-colors duration-200"
                       aria-label={`Disable ${user.username}`}
                     >

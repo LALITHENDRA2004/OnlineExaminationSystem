@@ -12,19 +12,30 @@
  * TODO: Add recent quiz history section
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getActiveQuizzes } from '../../services/quizService';
+import { getCurrentUser } from '../../services/authService';
 
 function StudentDashboard() {
-  // TODO: Replace with actual user data from authentication context
-  const studentName = "Student";
+  const [studentName, setStudentName] = useState("Student");
+  const [stats, setStats] = useState({
+    totalQuizzes: 0,
+    quizzesAttempted: "N/A", // Backend does not store attempts
+    averageScore: "N/A"      // Backend does not store results
+  });
 
-  // TODO: Replace with actual data from backend API
-  const stats = {
-    totalQuizzes: 15,
-    quizzesAttempted: 8,
-    averageScore: 75
-  };
+  useEffect(() => {
+    // Fetch user name
+    getCurrentUser().then(user => {
+      if (user) setStudentName(user.firstName || user.username);
+    });
+
+    // Fetch stats
+    getActiveQuizzes().then(quizzes => {
+      setStats(prev => ({ ...prev, totalQuizzes: quizzes.length }));
+    }).catch(err => console.error("Failed to load stats", err));
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto">

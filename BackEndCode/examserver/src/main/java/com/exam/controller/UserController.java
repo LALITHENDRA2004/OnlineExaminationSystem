@@ -26,13 +26,12 @@ public class UserController {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    //creating user
+    // creating user
     @PostMapping("/")
     public User createUser(@RequestBody User user) throws Exception {
 
-
         user.setProfile("default.png");
-        //encoding password with bcryptpasswordencoder
+        // encoding password with bcryptpasswordencoder
 
         user.setPassword(this.bCryptPasswordEncoder.encode(user.getPassword()));
 
@@ -48,7 +47,6 @@ public class UserController {
 
         roles.add(userRole);
 
-
         return this.userService.createUser(user, roles);
 
     }
@@ -58,20 +56,21 @@ public class UserController {
         return this.userService.getUser(username);
     }
 
-    //delete the user by id
+    // delete the user by id
     @DeleteMapping("/{userId}")
     public void deleteUser(@PathVariable("userId") Long userId) {
         this.userService.deleteUser(userId);
     }
 
-
-    //update api
-
+    // update api
 
     @ExceptionHandler(UserFoundException.class)
     public ResponseEntity<?> exceptionHandler(UserFoundException ex) {
         return ResponseEntity.ok(ex.getMessage());
     }
 
-
+    @GetMapping("/")
+    public ResponseEntity<?> getAllUsers() {
+        return ResponseEntity.ok(this.userService.getAllUsers());
+    }
 }

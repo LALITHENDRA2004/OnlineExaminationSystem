@@ -17,24 +17,22 @@ import java.util.Set;
 @Service
 public class UserServiceImpl implements UserService {
 
-
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private RoleRepository roleRepository;
 
-    //creating user
+    // creating user
     @Override
     public User createUser(User user, Set<UserRole> userRoles) throws Exception {
-
 
         User local = this.userRepository.findByUsername(user.getUsername());
         if (local != null) {
             System.out.println("User is already there !!");
             throw new UserFoundException();
         } else {
-            //user create
+            // user create
             for (UserRole ur : userRoles) {
                 roleRepository.save(ur.getRole());
             }
@@ -47,7 +45,7 @@ public class UserServiceImpl implements UserService {
         return local;
     }
 
-    //getting user by username
+    // getting user by username
     @Override
     public User getUser(String username) {
         return this.userRepository.findByUsername(username);
@@ -58,5 +56,9 @@ public class UserServiceImpl implements UserService {
         this.userRepository.deleteById(userId);
     }
 
+    @Override
+    public Set<User> getAllUsers() {
+        return new java.util.LinkedHashSet<>(this.userRepository.findAll());
+    }
 
 }

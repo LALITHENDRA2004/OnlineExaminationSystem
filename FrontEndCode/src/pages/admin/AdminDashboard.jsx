@@ -12,19 +12,36 @@
  * TODO: Add recent activity section (recently created quizzes, new users)
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { getAllCategories } from '../../services/categoryService';
+import { getAllQuizzes } from '../../services/quizService';
+import { getCurrentUser } from '../../services/authService';
 
 function AdminDashboard() {
-  // TODO: Replace with actual admin data from authentication context
-  const adminName = "Admin";
+  const [adminName, setAdminName] = useState("Admin");
+  const [stats, setStats] = useState({
+    totalUsers: "N/A",      // Endpoint missing
+    totalCategories: 0,
+    totalQuizzes: 0,
+    totalQuestions: "N/A"   // Endpoint missing
+  });
 
-  // TODO: Replace with actual statistics from backend API
-  const stats = {
-    totalUsers: 120,
-    totalCategories: 8,
-    totalQuizzes: 25,
-    totalQuestions: 300
-  };
+  useEffect(() => {
+    getCurrentUser().then(user => {
+      if (user) setAdminName(user.firstName || user.username);
+    });
+
+    Promise.all([
+      getAllCategories(),
+      getAllQuizzes()
+    ]).then(([categories, quizzes]) => {
+      setStats(prev => ({
+        ...prev,
+        totalCategories: categories.length,
+        totalQuizzes: quizzes.length
+      }));
+    }).catch(err => console.error("Failed to load admin stats", err));
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto">

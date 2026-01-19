@@ -9,18 +9,24 @@
  * TODO: Hide sidebar on public pages (login, register)
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import StudentSidebar from '../components/student/StudentSidebar';
 import AdminSidebar from '../components/admin/AdminSidebar';
+import { getUserRole } from '../services/authService';
 
 function MainLayout() {
-  const userRole = "STUDENT"; // TEMP
+  const [role, setRole] = useState(getUserRole());
+
+  useEffect(() => {
+    // Optional: listen for storage events or auth changes if needed
+    // For now, initial load is sufficient as layout unmounts on logout
+  }, []);
 
   return (
     <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
-      {userRole === "ADMIN" ? <AdminSidebar /> : <StudentSidebar />}
+      {role === "ADMIN" ? <AdminSidebar /> : <StudentSidebar />}
 
       {/* Main Content */}
       <main className="flex-1 bg-slate-50 p-8 overflow-y-auto">

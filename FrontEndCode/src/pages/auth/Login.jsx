@@ -12,6 +12,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { loginUser, setToken, getCurrentUser, setUser } from '../../services/authService';
 
 function Login() {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
@@ -27,21 +28,27 @@ function Login() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8080/generate-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials)
-      });
+      const data = await loginUser(credentials);
+      // login success, save token
+      if (data.token) {
+        setToken(data.token);
+        // fetch current user details if needed, or just redirect
+        const user = await getCurrentUser();
+        setUser(user); // Save to local storage
+        console.log('Logged in user:', user);
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
-        navigate('/dashboard');
+        // Redirect based on role
+        if (user.authorities[0].authority === 'ADMIN') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
-        setError('Invalid username or password');
+        setError('Invalid response from server');
       }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      console.error(err);
+      setError('Invalid username or password');
     }
   };
 

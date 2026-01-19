@@ -1,9 +1,10 @@
 // src/services/categoryService.js
+import { BASE_URL } from './helper';
 
 export const getAllCategories = async () => {
   const token = localStorage.getItem('token');
-  
-  const response = await fetch('http://localhost:8080/category/', {
+
+  const response = await fetch(`${BASE_URL}/category/`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -20,8 +21,8 @@ export const getAllCategories = async () => {
 
 export const createCategory = async (category) => {
   const token = localStorage.getItem('token');
-  
-  const response = await fetch('http://localhost:8080/category/', {
+
+  const response = await fetch(`${BASE_URL}/category/`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -39,8 +40,8 @@ export const createCategory = async (category) => {
 
 export const updateCategory = async (category) => {
   const token = localStorage.getItem('token');
-  
-  const response = await fetch('http://localhost:8080/category/', {
+
+  const response = await fetch(`${BASE_URL}/category/`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -58,8 +59,8 @@ export const updateCategory = async (category) => {
 
 export const deleteCategory = async (categoryId) => {
   const token = localStorage.getItem('token');
-  
-  const response = await fetch(`http://localhost:8080/category/${categoryId}`, {
+
+  const response = await fetch(`${BASE_URL}/category/${categoryId}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,

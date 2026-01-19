@@ -12,16 +12,58 @@
  * TODO: Add loading state during registration process
  */
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { registerUser } from '../../services/userService';
 
 function Register() {
+  const [user, setUser] = useState({
+    username: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  });
+
+  const [notification, setNotification] = useState({ type: '', message: '' });
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setUser({ ...user, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (user.username.trim() === '' || user.password.trim() === '') {
+      setNotification({ type: 'error', message: 'Username and Password are required' });
+      return;
+    }
+
+    try {
+      const data = await registerUser(user);
+      console.log(data);
+      setNotification({ type: 'success', message: 'User is registered successfully !!' });
+      // Redirect to login after short delay
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (error) {
+      console.log(error);
+      setNotification({ type: 'error', message: 'Something went wrong !!' });
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-slate-50">
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-10 w-full max-w-md">
         <h1 className="text-3xl font-bold text-slate-800 text-center mb-8">Register</h1>
 
-        <form className="space-y-6">
+        {notification.message && (
+          <div className={`p-4 mb-4 text-sm rounded-lg ${notification.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`} role="alert">
+            {notification.message}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="username" className="block text-sm font-semibold text-slate-700 mb-2">
               Username
@@ -30,9 +72,41 @@ function Register() {
               type="text"
               id="username"
               name="username"
+              onChange={handleChange}
+              value={user.username}
               placeholder="Enter your username"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              aria-label="Username"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="firstName" className="block text-sm font-semibold text-slate-700 mb-2">
+              First Name
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              onChange={handleChange}
+              value={user.firstName}
+              placeholder="Enter your first name"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="lastName" className="block text-sm font-semibold text-slate-700 mb-2">
+              Last Name
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              onChange={handleChange}
+              value={user.lastName}
+              placeholder="Enter your last name"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -44,9 +118,26 @@ function Register() {
               type="email"
               id="email"
               name="email"
+              onChange={handleChange}
+              value={user.email}
               placeholder="Enter your email"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              aria-label="Email"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="phone" className="block text-sm font-semibold text-slate-700 mb-2">
+              Phone
+            </label>
+            <input
+              type="number"
+              id="phone"
+              name="phone"
+              onChange={handleChange}
+              value={user.phone}
+              placeholder="Enter your phone number"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
 
@@ -58,16 +149,17 @@ function Register() {
               type="password"
               id="password"
               name="password"
+              onChange={handleChange}
+              value={user.password}
               placeholder="Enter your password"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              aria-label="Password"
+              required
             />
           </div>
 
           <button
-            type="button"
+            type="submit"
             className="w-full bg-indigo-700 text-white font-semibold py-3 rounded-lg hover:bg-indigo-800 transition-colors duration-200"
-            aria-label="Register"
           >
             Register
           </button>

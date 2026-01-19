@@ -13,11 +13,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getQuestionsByQuiz, createQuestion, updateQuestion, deleteQuestion, getQuiz } from '../../services/questionService';
+import { getQuestionsForAdmin, createQuestion, updateQuestion, deleteQuestion, getQuiz } from '../../services/questionService';
 
 function AdminQuestions() {
   const { id: quizId } = useParams();
-  
+
   const [questions, setQuestions] = useState([]);
   const [quizTitle, setQuizTitle] = useState('');
   const [loading, setLoading] = useState(true);
@@ -47,7 +47,7 @@ function AdminQuestions() {
       setError(null);
       const [quizData, questionsData] = await Promise.all([
         getQuiz(quizId),
-        getQuestionsByQuiz(quizId)
+        getQuestionsForAdmin(quizId)
       ]);
       setQuizTitle(quizData.title);
       setQuestions(questionsData);
@@ -191,7 +191,7 @@ function AdminQuestions() {
         <h2 className="text-2xl font-bold text-slate-800 mb-6">
           {editMode ? 'Edit Question' : 'Add New Question'}
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="content" className="block text-sm font-semibold text-slate-700 mb-2">
@@ -303,11 +303,10 @@ function AdminQuestions() {
             <button
               type="submit"
               disabled={submitting}
-              className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-200 ${
-                submitting
-                  ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
-                  : 'bg-indigo-700 text-white hover:bg-indigo-800'
-              }`}
+              className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-200 ${submitting
+                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                : 'bg-indigo-700 text-white hover:bg-indigo-800'
+                }`}
             >
               {submitting ? (editMode ? 'Updating...' : 'Creating...') : (editMode ? 'Update Question' : 'Create Question')}
             </button>
@@ -391,7 +390,7 @@ function AdminQuestions() {
 
       {/* Back Link */}
       <div className="mt-6">
-        <Link 
+        <Link
           to="/admin/quizzes"
           className="inline-block px-6 py-3 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition-colors duration-200"
           aria-label="Back to quizzes"
