@@ -61,4 +61,21 @@ public class UserServiceImpl implements UserService {
         return new java.util.LinkedHashSet<>(this.userRepository.findAll());
     }
 
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public User updateUser(User user) {
+        User local = this.userRepository.findById(user.getId()).orElse(null);
+        if (local != null) {
+            local.setFirstName(user.getFirstName());
+            local.setLastName(user.getLastName());
+            local.setEmail(user.getEmail());
+            local.setPhone(user.getPhone());
+            if (user.getProfile() != null) {
+                local.setProfile(user.getProfile());
+            }
+            // Do not update password or roles/authorities here to avoid data loss
+            return this.userRepository.save(local);
+        }
+        return null;
+    }
 }

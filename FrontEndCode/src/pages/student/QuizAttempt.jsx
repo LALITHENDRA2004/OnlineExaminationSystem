@@ -31,6 +31,37 @@ function QuizAttempt() {
     fetchQuizData();
   }, [id]);
 
+  const [timer, setTimer] = useState(0);
+
+  useEffect(() => {
+    // 2 minutes per question default, OR custom timer from quiz
+    if (quiz) {
+      // quiz.timer is in minutes. If valid, use it. Else default to 2 min/question.
+      const totalSeconds = (quiz.timer && quiz.timer > 0)
+        ? quiz.timer * 60
+        : (quiz.numberOfQuestions * 2 * 60);
+
+      setTimer(totalSeconds);
+    }
+  }, [quiz]);
+
+  useEffect(() => {
+    let interval;
+    if (timer > 0 && !submitting) {
+      interval = setInterval(() => {
+        setTimer((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(interval);
+            handleSubmit(); // Auto-submit
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer, submitting]);
+
   const fetchQuizData = async () => {
     try {
       setLoading(true);
@@ -153,10 +184,12 @@ function QuizAttempt() {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-slate-800">{quiz.title}</h1>
-        {/* TODO: Implement countdown timer */}
-        <div className="bg-amber-100 border border-amber-300 px-6 py-3 rounded-lg">
-          <p className="text-lg font-bold text-amber-800" aria-label="Time remaining">
-            No time limit
+
+        {/* Countdown Timer */}
+        <div className="bg-amber-100 border border-amber-300 px-6 py-3 rounded-lg shadow-sm">
+          <p className="text-sm text-amber-800 uppercase font-semibold tracking-wide">Time Remaining</p>
+          <p className="text-2xl font-bold text-amber-900 font-mono" aria-label="Time remaining">
+            {Math.floor(timer / 60)} min : {String(timer % 60).padStart(2, '0')} sec
           </p>
         </div>
       </div>

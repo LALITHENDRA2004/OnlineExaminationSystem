@@ -41,7 +41,7 @@ function Login() {
         if (user.authorities[0].authority === 'ADMIN') {
           navigate('/admin/dashboard');
         } else {
-          navigate('/dashboard');
+          navigate('/student/dashboard');
         }
       } else {
         setError('Invalid response from server');
@@ -57,7 +57,7 @@ function Login() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-10 w-full max-w-md">
         <h1 className="text-3xl font-bold text-slate-800 text-center mb-8">Login</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" autoComplete="nope">
           <div>
             <label htmlFor="username" className="block text-sm font-semibold text-slate-700 mb-2">
               Username / Email
@@ -69,6 +69,7 @@ function Login() {
               value={credentials.username}
               onChange={handleChange}
               placeholder="Enter your username or email"
+              autoComplete="new-username-field"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               aria-label="Username or Email"
             />
@@ -85,6 +86,7 @@ function Login() {
               value={credentials.password}
               onChange={handleChange}
               placeholder="Enter your password"
+              autoComplete="new-password-field"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               aria-label="Password"
             />

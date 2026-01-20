@@ -79,6 +79,7 @@ function AdminQuizzes() {
         maxMarks: parseInt(formData.maxMarks),
         numberOfQuestions: parseInt(formData.numberOfQuestions),
         active: formData.active,
+        timer: formData.timer ? parseInt(formData.timer) : null,
         category: {
           cid: parseInt(formData.category)
         }
@@ -87,10 +88,20 @@ function AdminQuizzes() {
       if (editMode) {
         quizPayload.qid = formData.qid;
         const updatedQuiz = await updateQuiz(quizPayload);
+        // Populate category object with full details
+        const categoryDetails = categories.find(cat => cat.cid === parseInt(formData.category));
+        if (categoryDetails) {
+          updatedQuiz.category = categoryDetails;
+        }
         setQuizzes(prevQuizzes => prevQuizzes.map(q => q.qid === formData.qid ? updatedQuiz : q));
         setSuccessMessage('Quiz updated successfully!');
       } else {
         const newQuiz = await createQuiz(quizPayload);
+        // Populate category object with full details from the categories list
+        const categoryDetails = categories.find(cat => cat.cid === parseInt(formData.category));
+        if (categoryDetails) {
+          newQuiz.category = categoryDetails;
+        }
         setQuizzes(prevQuizzes => [...prevQuizzes, newQuiz]);
         setSuccessMessage('Quiz created successfully!');
       }
@@ -102,7 +113,8 @@ function AdminQuizzes() {
         maxMarks: '',
         numberOfQuestions: '',
         category: '',
-        active: true
+        active: true,
+        timer: '' // Reset timer field
       });
       setEditMode(false);
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -121,7 +133,8 @@ function AdminQuizzes() {
       maxMarks: quiz.maxMarks,
       numberOfQuestions: quiz.numberOfQuestions,
       category: quiz.category?.cid || '',
-      active: quiz.active
+      active: quiz.active,
+      timer: quiz.timer || '' // Populate timer field
     });
     setEditMode(true);
     setSubmitError(null);
@@ -136,7 +149,8 @@ function AdminQuizzes() {
       maxMarks: '',
       numberOfQuestions: '',
       category: '',
-      active: true
+      active: true,
+      timer: '' // Reset timer field
     });
     setEditMode(false);
     setSubmitError(null);
@@ -190,7 +204,7 @@ function AdminQuizzes() {
         <h2 className="text-2xl font-bold text-slate-800 mb-6">
           {editMode ? 'Edit Quiz' : 'Add New Quiz'}
         </h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -247,7 +261,7 @@ function AdminQuizzes() {
             ></textarea>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> {/* Changed to 3 columns */}
             <div>
               <label htmlFor="maxMarks" className="block text-sm font-semibold text-slate-700 mb-2">
                 Max Marks
@@ -281,6 +295,24 @@ function AdminQuizzes() {
                 min="1"
               />
             </div>
+
+            {/* Timer Input */}
+            <div>
+              <label htmlFor="timer" className="block text-sm font-semibold text-slate-700 mb-2">
+                Timer (Minutes)
+              </label>
+              <input
+                type="number"
+                id="timer"
+                name="timer"
+                value={formData.timer}
+                onChange={handleInputChange}
+                placeholder="e.g. 30"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                min="1"
+              />
+              <p className="text-xs text-slate-500 mt-1">Leave blank for auto-calc (2 min/q)</p>
+            </div>
           </div>
 
           <div className="flex items-center">
@@ -309,11 +341,10 @@ function AdminQuizzes() {
             <button
               type="submit"
               disabled={submitting}
-              className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-200 ${
-                submitting
-                  ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
-                  : 'bg-indigo-700 text-white hover:bg-indigo-800'
-              }`}
+              className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-200 ${submitting
+                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                : 'bg-indigo-700 text-white hover:bg-indigo-800'
+                }`}
             >
               {submitting ? (editMode ? 'Updating...' : 'Creating...') : (editMode ? 'Update Quiz' : 'Create Quiz')}
             </button>
@@ -357,46 +388,45 @@ function AdminQuizzes() {
             <tbody className="divide-y divide-gray-200">
               {quizzes.map((quiz) => {
                 return (
-                <tr key={`quiz-${quiz.qId}`} className="hover:bg-slate-50 transition-colors duration-150">
-                  <td className="px-6 py-4 text-sm font-medium text-slate-800">{quiz.title}</td>
-                  <td className="px-6 py-4 text-sm text-slate-700">{quiz.category?.title || 'N/A'}</td>
-                  <td className="px-6 py-4 text-sm text-slate-700">{quiz.numberOfQuestions}</td>
-                  <td className="px-6 py-4 text-sm text-slate-700">{quiz.maxMarks}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
-                      quiz.active 
-                        ? 'bg-green-100 text-green-700' 
+                  <tr key={`quiz-${quiz.qId}`} className="hover:bg-slate-50 transition-colors duration-150">
+                    <td className="px-6 py-4 text-sm font-medium text-slate-800">{quiz.title}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">{quiz.category?.title || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">{quiz.numberOfQuestions}</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">{quiz.maxMarks}</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${quiz.active
+                        ? 'bg-green-100 text-green-700'
                         : 'bg-gray-100 text-gray-700'
-                    }`}>
-                      {quiz.active ? 'Yes' : 'No'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(quiz)}
-                        className="px-4 py-2 bg-indigo-100 text-indigo-700 text-sm font-medium rounded-lg hover:bg-indigo-200 transition-colors duration-200"
-                        aria-label={`Edit ${quiz.title}`}
-                      >
-                        Edit
-                      </button>
-                      <Link 
-                        to={`/admin/quizzes/${quiz.qId}/questions`}
-                        className="px-4 py-2 bg-teal-100 text-teal-700 text-sm font-medium rounded-lg hover:bg-teal-200 transition-colors duration-200"
-                        aria-label={`Manage questions for ${quiz.title}`}
-                      >
-                        Questions
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(quiz.qId)}
-                        className="px-4 py-2 bg-red-100 text-red-700 text-sm font-medium rounded-lg hover:bg-red-200 transition-colors duration-200"
-                        aria-label={`Delete ${quiz.title}`}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                        }`}>
+                        {quiz.active ? 'Yes' : 'No'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEdit(quiz)}
+                          className="px-4 py-2 bg-indigo-100 text-indigo-700 text-sm font-medium rounded-lg hover:bg-indigo-200 transition-colors duration-200"
+                          aria-label={`Edit ${quiz.title}`}
+                        >
+                          Edit
+                        </button>
+                        <Link
+                          to={`/admin/quizzes/${quiz.qId}/questions`}
+                          className="px-4 py-2 bg-teal-100 text-teal-700 text-sm font-medium rounded-lg hover:bg-teal-200 transition-colors duration-200"
+                          aria-label={`Manage questions for ${quiz.title}`}
+                        >
+                          Questions
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(quiz.qId)}
+                          className="px-4 py-2 bg-red-100 text-red-700 text-sm font-medium rounded-lg hover:bg-red-200 transition-colors duration-200"
+                          aria-label={`Delete ${quiz.title}`}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>

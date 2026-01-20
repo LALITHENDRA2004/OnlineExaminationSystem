@@ -9,7 +9,15 @@ export const registerUser = async (user) => {
         body: JSON.stringify(user),
     });
 
-    return response.json();
+    const data = await response.json();
+
+    // Check if response is successful
+    if (!response.ok) {
+        // If backend returns an error message, throw it
+        throw new Error(data.message || data || 'Registration failed');
+    }
+
+    return data;
 };
 
 export const getAllUsers = async () => {
@@ -41,4 +49,22 @@ export const deleteUser = async (userId) => {
         },
     });
     return response.text();
+};
+
+export const updateUser = async (user) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${BASE_URL}/user/`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(user),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Update failed with status: ${response.status}`);
+    }
+
+    return response.json();
 };

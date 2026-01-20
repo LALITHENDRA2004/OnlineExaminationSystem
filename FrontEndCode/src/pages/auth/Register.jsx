@@ -48,7 +48,11 @@ function Register() {
       setTimeout(() => navigate('/login'), 2000);
     } catch (error) {
       console.log(error);
-      setNotification({ type: 'error', message: 'Something went wrong !!' });
+      // Display the actual error message from backend
+      setNotification({
+        type: 'error',
+        message: error.message || 'Something went wrong !!'
+      });
     }
   };
 
@@ -63,7 +67,7 @@ function Register() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
           <div>
             <label htmlFor="username" className="block text-sm font-semibold text-slate-700 mb-2">
               Username
@@ -75,6 +79,24 @@ function Register() {
               onChange={handleChange}
               value={user.username}
               placeholder="Enter your username"
+              autoComplete="off"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              onChange={handleChange}
+              value={user.password}
+              placeholder="Enter your password"
+              autoComplete="new-password"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               required
             />
@@ -138,22 +160,6 @@ function Register() {
               value={user.phone}
               placeholder="Enter your phone number"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              onChange={handleChange}
-              value={user.password}
-              placeholder="Enter your password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              required
             />
           </div>
 

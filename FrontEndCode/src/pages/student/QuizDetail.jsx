@@ -16,7 +16,7 @@ import { getQuiz } from '../../services/questionService';
 function QuizDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,12 +30,12 @@ function QuizDetail() {
       setLoading(true);
       setError(null);
       const data = await getQuiz(id);
-      
+
       if (!data.active) {
         setError('This quiz is not currently active.');
         return;
       }
-      
+
       setQuiz(data);
     } catch (err) {
       setError(err.message);
@@ -85,26 +85,28 @@ function QuizDetail() {
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 mb-8">
         <h2 className="text-2xl font-bold text-slate-800 mb-6">Quiz Information</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
             <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Category</span>
             <span className="text-lg font-bold text-indigo-700">{quiz.category?.title || 'N/A'}</span>
           </div>
-          
+
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
             <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Questions</span>
             <span className="text-lg font-bold text-slate-800">{quiz.numberOfQuestions}</span>
           </div>
-          
+
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
             <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Max Marks</span>
             <span className="text-lg font-bold text-slate-800">{quiz.maxMarks}</span>
           </div>
-          
+
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
             <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Time Limit</span>
-            <span className="text-lg font-bold text-slate-800">No limit</span>
+            <span className="text-lg font-bold text-slate-800">
+              {quiz.timer && quiz.timer > 0 ? `${quiz.timer} Minutes` : `${quiz.numberOfQuestions * 2} Minutes`}
+            </span>
           </div>
         </div>
       </div>

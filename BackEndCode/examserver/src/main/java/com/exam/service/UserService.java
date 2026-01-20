@@ -18,4 +18,7 @@ public interface UserService {
 
     // get all users
     public Set<User> getAllUsers();
+
+    // update user
+    public User updateUser(User user);
 }

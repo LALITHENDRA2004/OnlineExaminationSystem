@@ -75,7 +75,7 @@ function Result() {
       {/* Summary Section */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8 mb-8">
         <h2 className="text-2xl font-bold text-slate-800 mb-6">Summary</h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center p-6 bg-slate-50 rounded-lg">
             <p className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Questions Attempted</p>
@@ -95,7 +95,15 @@ function Result() {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-center gap-4">
+      <div className="flex flex-wrap items-center justify-center gap-4">
+        {result.rId && (
+          <Link
+            to={`/results/review/${result.rId}`}
+            className="px-8 py-4 bg-amber-600 text-white font-semibold rounded-lg hover:bg-amber-700 transition-colors duration-200 shadow-sm"
+          >
+            Review Answers
+          </Link>
+        )}
         <Link
           to="/dashboard"
           className="px-8 py-4 bg-indigo-700 text-white font-semibold rounded-lg hover:bg-indigo-800 transition-colors duration-200 shadow-sm"

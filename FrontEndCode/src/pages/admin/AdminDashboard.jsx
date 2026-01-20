@@ -13,33 +13,38 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getAllCategories } from '../../services/categoryService';
 import { getAllQuizzes } from '../../services/quizService';
-import { getCurrentUser } from '../../services/authService';
+import { getAllUsers } from '../../services/userService';
+import { getUser } from '../../services/authService';
+import { getTotalQuestionCount } from '../../services/questionService';
 
 function AdminDashboard() {
   const [adminName, setAdminName] = useState("Admin");
   const [stats, setStats] = useState({
-    totalUsers: "N/A",      // Endpoint missing
+    totalUsers: 0,
     totalCategories: 0,
     totalQuizzes: 0,
-    totalQuestions: "N/A"   // Endpoint missing
+    totalQuestions: 0
   });
 
   useEffect(() => {
-    getCurrentUser().then(user => {
-      if (user) setAdminName(user.firstName || user.username);
-    });
+    const user = getUser();
+    if (user) setAdminName(user.firstName || user.username);
 
     Promise.all([
       getAllCategories(),
-      getAllQuizzes()
-    ]).then(([categories, quizzes]) => {
-      setStats(prev => ({
-        ...prev,
+      getAllQuizzes(),
+      getAllUsers(),
+      getTotalQuestionCount()
+    ]).then(([categories, quizzes, users, questionCount]) => {
+      setStats({
         totalCategories: categories.length,
-        totalQuizzes: quizzes.length
-      }));
+        totalQuizzes: quizzes.length,
+        totalUsers: users.length,
+        totalQuestions: questionCount
+      });
     }).catch(err => console.error("Failed to load admin stats", err));
   }, []);
 
@@ -54,25 +59,31 @@ function AdminDashboard() {
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Users Card */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Users</p>
-          <p className="text-4xl font-bold text-indigo-700">{stats.totalUsers}</p>
-        </div>
+        <Link to="/admin/users" className="block">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-shadow duration-200 h-full">
+            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Users</p>
+            <p className="text-4xl font-bold text-indigo-700">{stats.totalUsers}</p>
+          </div>
+        </Link>
 
         {/* Total Categories Card */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Categories</p>
-          <p className="text-4xl font-bold text-teal-700">{stats.totalCategories}</p>
-        </div>
+        <Link to="/admin/categories" className="block">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-shadow duration-200 h-full">
+            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Categories</p>
+            <p className="text-4xl font-bold text-teal-700">{stats.totalCategories}</p>
+          </div>
+        </Link>
 
         {/* Total Quizzes Card */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Quizzes</p>
-          <p className="text-4xl font-bold text-amber-600">{stats.totalQuizzes}</p>
-        </div>
+        <Link to="/admin/quizzes" className="block">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-shadow duration-200 h-full">
+            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Quizzes</p>
+            <p className="text-4xl font-bold text-amber-600">{stats.totalQuizzes}</p>
+          </div>
+        </Link>
 
-        {/* Total Questions Card */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
+        {/* Total Questions Card - No direct link as questions are per quiz */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 hover:shadow-md transition-shadow duration-200 h-full">
           <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">Total Questions</p>
           <p className="text-4xl font-bold text-purple-700">{stats.totalQuestions}</p>
         </div>

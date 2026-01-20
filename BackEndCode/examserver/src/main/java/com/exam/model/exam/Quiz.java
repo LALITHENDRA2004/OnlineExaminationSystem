@@ -22,6 +22,8 @@ public class Quiz {
 
     private Integer numberOfQuestions;
 
+    private Integer timer; // in minutes
+
     private boolean active = false;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -96,5 +98,13 @@ public class Quiz {
 
     public void setQuestions(Set<Question> questions) {
         this.questions = questions;
+    }
+
+    public Integer getTimer() {
+        return timer;
+    }
+
+    public void setTimer(Integer timer) {
+        this.timer = timer;
     }
 }

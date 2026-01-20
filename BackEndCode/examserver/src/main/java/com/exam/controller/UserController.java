@@ -66,11 +66,34 @@ public class UserController {
 
     @ExceptionHandler(UserFoundException.class)
     public ResponseEntity<?> exceptionHandler(UserFoundException ex) {
-        return ResponseEntity.ok(ex.getMessage());
+        // Return proper JSON error response with 400 Bad Request status
+        return ResponseEntity.badRequest().body(new ErrorResponse(ex.getMessage()));
+    }
+
+    // Simple error response class for JSON serialization
+    static class ErrorResponse {
+        private String message;
+
+        public ErrorResponse(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
     }
 
     @GetMapping("/")
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(this.userService.getAllUsers());
+    }
+
+    @PutMapping("/")
+    public User updateUser(@RequestBody User user) {
+        return this.userService.updateUser(user);
     }
 }

@@ -19,7 +19,7 @@
 
 // function AppContent() {
 //   const location = useLocation();
-  
+
 //   // TODO: Replace this route check with real authentication logic later
 //   const isPublicRoute = location.pathname === '/login' || location.pathname === '/register';
 
@@ -51,13 +51,11 @@
 
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import Navbar from './components/common/Navbar';
 import AppRoutes from './routes/AppRoutes';
 
 function App() {
   return (
     <BrowserRouter>
-      <Navbar />
       <AppRoutes />
     </BrowserRouter>
   );

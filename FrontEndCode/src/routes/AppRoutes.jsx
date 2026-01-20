@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
-import MainLayout from '../layouts/MainLayout';
+import AdminLayout from '../layouts/AdminLayout';
+import StudentLayout from '../layouts/StudentLayout';
 
 // Public pages
 import Login from '../pages/auth/Login';
@@ -13,6 +14,8 @@ import QuizDetail from '../pages/student/QuizDetail';
 import QuizAttempt from '../pages/student/QuizAttempt';
 import Result from '../pages/student/Result';
 import Profile from '../pages/student/Profile';
+import UserAttempts from '../pages/student/UserAttempts';
+import ReviewQuiz from '../pages/student/ReviewQuiz';
 
 // Admin pages
 import AdminDashboard from '../pages/admin/AdminDashboard';
@@ -30,18 +33,24 @@ function AppRoutes() {
       <Route path="/register" element={<Register />} />
 
       {/* Protected routes */}
+      {/* Protected routes */}
       <Route element={<ProtectedRoute />}>
-        <Route element={<MainLayout />}>
-          {/* Student */}
-          <Route path="/dashboard" element={<StudentDashboard />} />
+
+        {/* Student Routes wrapped in StudentLayout */}
+        <Route element={<StudentLayout />}>
+          <Route path="/student/dashboard" element={<StudentDashboard />} />
+          <Route path="/student/attempts" element={<UserAttempts />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/quizzes" element={<QuizList />} />
           <Route path="/quizzes/:id" element={<QuizDetail />} />
           <Route path="/quizzes/:id/attempt" element={<QuizAttempt />} />
           <Route path="/results/:id" element={<Result />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route path="/results/review/:rid" element={<ReviewQuiz />} />
+        </Route>
 
-          {/* Admin */}
-          <Route element={<AdminRoute />}>
+        {/* Admin Routes wrapped in AdminLayout */}
+        <Route element={<AdminRoute />}>
+          <Route element={<AdminLayout />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/categories" element={<AdminCategories />} />
@@ -49,6 +58,7 @@ function AppRoutes() {
             <Route path="/admin/quizzes/:id/questions" element={<AdminQuestions />} />
           </Route>
         </Route>
+
       </Route>
     </Routes>
   );
