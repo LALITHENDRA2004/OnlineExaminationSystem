@@ -110,22 +110,33 @@ public class QuestionController {
         }
 
         for (Question q : questions) {
+            // Fetch full question detail from DB
             Question question = this.service.getQuestion(q.getQuesId());
+
+            // Populate q with details for review serialization
+            q.setContent(question.getContent());
+            q.setOption1(question.getOption1());
+            q.setOption2(question.getOption2());
+            q.setOption3(question.getOption3());
+            q.setOption4(question.getOption4());
+            q.setAnswer(question.getAnswer());
+            q.setImage(question.getImage());
+
             if (question.getAnswer().equals(q.getGivenAnswer())) {
                 correctAnswers++;
                 double marksSingle = Double.parseDouble(quiz.getMaxMarks() + "") / questions.size();
                 marksGot += marksSingle;
             }
 
-            if (q.getGivenAnswer() != null) {
+            if (q.getGivenAnswer() != null && !q.getGivenAnswer().trim().isEmpty()) {
                 attempted++;
             }
         }
 
-        Map<String, Object> map = Map.of(
-                "marksGot", marksGot,
-                "correctAnswers", correctAnswers,
-                "attempted", attempted);
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("marksGot", marksGot);
+        responseMap.put("correctAnswers", correctAnswers);
+        responseMap.put("attempted", attempted);
 
         // Save Result
         try {
@@ -147,14 +158,15 @@ public class QuestionController {
                 System.err.println("Error serializing responses: " + e.getMessage());
             }
 
-            this.resultService.saveResult(result);
+            com.exam.model.exam.Result savedResult = this.resultService.saveResult(result);
+            responseMap.put("rId", savedResult.getrId());
 
         } catch (Exception e) {
             System.err.println("Error saving result: " + e.getMessage());
             e.printStackTrace();
         }
 
-        return ResponseEntity.ok(map);
+        return ResponseEntity.ok(responseMap);
     }
 
 }

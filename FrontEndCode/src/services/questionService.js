@@ -110,3 +110,21 @@ export const getQuiz = async (quizId) => {
 
   return await response.json();
 };
+
+export const getTotalQuestionCount = async () => {
+  const token = localStorage.getItem('token');
+
+  const response = await fetch(`${BASE_URL}/question/count`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch question count');
+  }
+
+  return await response.json();
+};

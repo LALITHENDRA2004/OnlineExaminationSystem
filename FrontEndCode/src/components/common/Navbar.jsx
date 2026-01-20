@@ -1,20 +1,14 @@
-import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { doLogout, getUser, isLoggedIn } from '../../services/authService';
+import { doLogout } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 
 function Navbar() {
-  const [login, setLogin] = useState(false);
-  const [user, setUser] = useState(undefined);
+  const { user, setUser } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setLogin(isLoggedIn());
-    setUser(getUser());
-  }, [login]);
 
   const handleLogout = () => {
     doLogout(() => {
-      setLogin(false);
+      setUser(null);
       navigate('/login');
     });
   };
@@ -26,7 +20,7 @@ function Navbar() {
           {/* Brand */}
           <div className="flex-shrink-0">
             <Link
-              to={login && user?.authorities?.[0]?.authority === 'ADMIN' ? "/admin/dashboard" : "/student/dashboard"}
+              to={user && user?.authorities?.[0]?.authority === 'ADMIN' ? "/admin/dashboard" : "/student/dashboard"}
               className="text-2xl font-bold text-gray-900 hover:text-blue-600 transition-colors"
               aria-label="Home"
             >
@@ -36,7 +30,7 @@ function Navbar() {
 
           {/* Navigation Links */}
           <div className="flex items-center space-x-8">
-            {login && user?.authorities?.[0]?.authority === 'ADMIN' ? (
+            {user && user?.authorities?.[0]?.authority === 'ADMIN' ? (
               // Admin Links - mostly handled by sidebar, but could have top-level shortcuts
               <>
                 <Link
@@ -79,7 +73,7 @@ function Navbar() {
 
           {/* Logout Button */}
           <div className="flex-shrink-0">
-            {login ? (
+            {user ? (
               <button
                 onClick={handleLogout}
                 className="px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"

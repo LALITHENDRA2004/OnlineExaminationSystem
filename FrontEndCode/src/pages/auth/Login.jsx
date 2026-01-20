@@ -12,12 +12,14 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser, setToken, getCurrentUser, setUser } from '../../services/authService';
+import { loginUser, setToken, getCurrentUser, setUser as setLocalUser } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 
 function Login() {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -34,7 +36,8 @@ function Login() {
         setToken(data.token);
         // fetch current user details if needed, or just redirect
         const user = await getCurrentUser();
-        setUser(user); // Save to local storage
+        setLocalUser(user); // Save to local storage
+        setUser(user);      // Update context state
         console.log('Logged in user:', user);
 
         // Redirect based on role

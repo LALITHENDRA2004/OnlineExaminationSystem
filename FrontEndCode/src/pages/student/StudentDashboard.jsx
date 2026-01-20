@@ -155,6 +155,12 @@ function StudentDashboard() {
               Start New Quiz
             </Link>
             <Link
+              to="/student/attempts"
+              className="bg-amber-600 text-white rounded-lg p-6 text-center font-semibold text-lg hover:bg-amber-700 transition-colors duration-200 shadow-sm"
+            >
+              My Attempts
+            </Link>
+            <Link
               to="/profile"
               className="bg-teal-700 text-white rounded-lg p-6 text-center font-semibold text-lg hover:bg-teal-800 transition-colors duration-200 shadow-sm"
             >

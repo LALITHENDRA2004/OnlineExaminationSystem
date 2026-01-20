@@ -68,57 +68,63 @@ function ReviewQuiz() {
                         <div key={index} className={`bg-white rounded-xl border-2 p-6 shadow-sm ${isCorrect ? 'border-green-100' : 'border-red-100'}`}>
                             <div className="flex justify-between items-start mb-4">
                                 <p className="text-sm font-semibold text-slate-500 uppercase">Question {index + 1}</p>
-                                {isCorrect ? (
-                                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Correct</span>
+                                {q.givenAnswer ? (
+                                    isCorrect ? (
+                                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Correct</span>
+                                    ) : (
+                                        <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Incorrect</span>
+                                    )
                                 ) : (
-                                    <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Incorrect</span>
+                                    <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Not Attempted</span>
                                 )}
                             </div>
-                            <h2 className="text-xl font-bold text-slate-800 mb-6">{q.content}</h2>
+
+                            <h2 className="text-xl font-bold text-slate-800 mb-6">
+                                {q.content || "Question content missing (Legacy attempt)"}
+                            </h2>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {[q.option1, q.option2, q.option3, q.option4].map((opt, i) => {
+                                    if (!opt && !q.content) return null; // Skip empty options in legacy data
+
                                     const isSelected = q.givenAnswer === opt;
                                     const isRightAnswer = q.answer === opt;
 
                                     let bgClass = "bg-white border-gray-200";
+                                    let borderClass = "border-gray-200";
                                     let textClass = "text-slate-700";
 
                                     if (isSelected && isRightAnswer) {
-                                        bgClass = "bg-green-50 border-green-500";
+                                        bgClass = "bg-green-50";
+                                        borderClass = "border-green-500";
                                         textClass = "text-green-800 font-semibold";
                                     } else if (isSelected && !isRightAnswer) {
-                                        bgClass = "bg-red-50 border-red-500";
+                                        bgClass = "bg-red-50";
+                                        borderClass = "border-red-500";
                                         textClass = "text-red-800 font-semibold";
                                     } else if (isRightAnswer) {
-                                        bgClass = "bg-green-50 border-green-200";
+                                        bgClass = "bg-green-50";
+                                        borderClass = "border-green-200";
                                         textClass = "text-green-700 font-semibold";
                                     }
 
                                     return (
-                                        <div key={i} className={`p-4 border-2 rounded-lg ${bgClass} ${textClass}`}>
+                                        <div key={i} className={`p-4 border-2 rounded-lg ${bgClass} ${borderClass} ${textClass}`}>
                                             <div className="flex items-center">
                                                 <div className={`w-5 h-5 rounded-full border mr-3 flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'}`}>
                                                     {isSelected && <div className="w-2 h-2 rounded-full bg-white"></div>}
                                                 </div>
-                                                <span>{opt}</span>
+                                                <span>{opt || `Option ${i + 1}`}</span>
                                             </div>
                                         </div>
                                     );
                                 })}
                             </div>
 
-                            {!isCorrect && q.givenAnswer && (
-                                <div className="mt-4 p-3 bg-blue-50 text-blue-800 rounded-lg text-sm">
-                                    <p><strong>Your Answer:</strong> {q.givenAnswer}</p>
-                                    <p><strong>Correct Answer:</strong> {q.answer}</p>
-                                </div>
-                            )}
-                            {!q.givenAnswer && (
-                                <div className="mt-4 p-3 bg-amber-50 text-amber-800 rounded-lg text-sm">
-                                    <p>Not attempted. Correct answer was: <strong>{q.answer}</strong></p>
-                                </div>
-                            )}
+                            <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm flex flex-col gap-2">
+                                <p><span className="font-semibold text-slate-600">Your Answer:</span> <span className={isCorrect ? "text-green-700 font-bold" : "text-red-700 font-bold"}>{q.givenAnswer || 'Not Attempted'}</span></p>
+                                <p><span className="font-semibold text-slate-600">Correct Answer:</span> <span className="text-green-700 font-bold">{q.answer || 'N/A'}</span></p>
+                            </div>
                         </div>
                     );
                 })}
