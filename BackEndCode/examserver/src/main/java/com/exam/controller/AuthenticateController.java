@@ -22,7 +22,6 @@ import java.security.Principal;
 @CrossOrigin("*")
 public class AuthenticateController {
 
-
     @Autowired
     private AuthenticationManager authenticationManager;
 
@@ -32,8 +31,7 @@ public class AuthenticateController {
     @Autowired
     private JwtUtils jwtUtils;
 
-
-    //generate token
+    // generate token
 
     @PostMapping("/generate-token")
     public ResponseEntity<?> generateToken(@RequestBody JwtRequest jwtRequest) throws Exception {
@@ -42,21 +40,21 @@ public class AuthenticateController {
 
             authenticate(jwtRequest.getUsername(), jwtRequest.getPassword());
 
-
         } catch (UserNotFoundException e) {
             e.printStackTrace();
-            throw new Exception("User not found ");
+            return ResponseEntity.status(404).body("User not found");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(401).body("Invalid Credentials: " + e.getMessage());
         }
 
-        /////////////authenticate
+        ///////////// authenticate
 
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(jwtRequest.getUsername());
         String token = this.jwtUtils.generateToken(userDetails);
         return ResponseEntity.ok(new JwtResponse(token));
 
-
     }
-
 
     private void authenticate(String username, String password) throws Exception {
 
@@ -71,13 +69,11 @@ public class AuthenticateController {
         }
     }
 
-    //return the details of current user
+    // return the details of current user
     @GetMapping("/current-user")
     public User getCurrentUser(Principal principal) {
         return ((User) this.userDetailsService.loadUserByUsername(principal.getName()));
 
     }
-
-
 
 }
