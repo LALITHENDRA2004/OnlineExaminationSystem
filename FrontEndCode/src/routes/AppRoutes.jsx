@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import AdminLayout from '../layouts/AdminLayout';
 import StudentLayout from '../layouts/StudentLayout';
@@ -28,6 +28,9 @@ import AdminRoute from './AdminRoute';
 function AppRoutes() {
   return (
     <Routes>
+      {/* Root route redirection */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
       {/* Public routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

@@ -1,11 +1,3 @@
-/**
- * Profile.jsx
- * 
- * Purpose:
- * - Displays profile information of the logged-in user
- * - Allows user to edit their profile details
- */
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUser, getCurrentUser, doLogout, setUser as updateLocalUser } from '../../services/authService';
@@ -19,20 +11,18 @@ function Profile() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Load from local storage first for speed
     const localUser = getUser();
     if (localUser) {
       setUser(localUser);
       setFormData(localUser);
     }
 
-    // Always fetch fresh data from server to ensure we have ID and latest details
     getCurrentUser().then(serverUser => {
       setUser(serverUser);
       setFormData(serverUser);
-      updateLocalUser(serverUser); // Update local storage
+      updateLocalUser(serverUser);
     }).catch(error => {
-      console.error("Failed to load user profile", error);
+      console.error("Profile synchronization failure", error);
     });
   }, []);
 
@@ -50,17 +40,7 @@ function Profile() {
     e.preventDefault();
     setLoading(true);
 
-    // DEBUG: Check if we have ID
-    if (!formData.id) {
-      alert("Error: User ID is missing in form data! Update might fail.");
-      console.error("Missing ID", formData);
-    } else {
-      console.log("Updating User ID:", formData.id);
-    }
-
     try {
-      // Create a clean payload with only updatable fields + ID
-      // This prevents sending authorities/roles which cause backend deserialization errors
       const payload = {
         id: formData.id,
         username: formData.username,
@@ -71,138 +51,165 @@ function Profile() {
         profile: formData.profile
       };
 
-      const result = await updateUser(payload);
-      if (!result) {
-        throw new Error("Update failed: Server returned no data. User ID might be incorrect.");
-      }
-
-      // Fetch fresh data from server to ensure we have complete object
+      await updateUser(payload);
       const freshUser = await getCurrentUser();
 
       setUser(freshUser);
-      updateLocalUser(freshUser); // Update local storage
+      updateLocalUser(freshUser);
       setEditMode(false);
-      alert("Profile updated successfully!");
     } catch (error) {
-      console.error("Failed to update profile", error);
-      alert("Failed to update profile");
+      console.error("Profile update failure", error);
     } finally {
       setLoading(false);
     }
   };
 
-  if (!user) {
-    return (
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-lg text-slate-600">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
+  if (!user) return (
+    <div className="max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[60vh]">
+      <div className="spinner w-10 h-10 mb-4"></div>
+      <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Loading Profile Information...</p>
+    </div>
+  );
 
   return (
-    <div className="max-w-3xl mx-auto">
-      {/* Page Title */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-slate-800 mb-2">My Profile</h1>
-        <p className="text-lg text-slate-600">View and manage your account information.</p>
-      </div>
-
-      {/* Profile Card */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
-        <h2 className="text-2xl font-bold text-slate-800 mb-6">
-          {editMode ? 'Edit Profile' : 'Account Details'}
-        </h2>
-
-        {!editMode ? (
-          // View Mode
-          <div className="space-y-5">
-            <div className="grid grid-cols-[140px_1fr] items-center">
-              <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Username</span>
-              <span className="text-lg font-medium text-slate-800">{user.username}</span>
-            </div>
-            <div className="grid grid-cols-[140px_1fr] items-center">
-              <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">First Name</span>
-              <span className="text-lg font-medium text-slate-800">{user.firstName}</span>
-            </div>
-            <div className="grid grid-cols-[140px_1fr] items-center">
-              <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Last Name</span>
-              <span className="text-lg font-medium text-slate-800">{user.lastName}</span>
-            </div>
-            <div className="grid grid-cols-[140px_1fr] items-center">
-              <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Email</span>
-              <span className="text-lg font-medium text-slate-800">{user.email}</span>
-            </div>
-            <div className="grid grid-cols-[140px_1fr] items-center">
-              <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Phone</span>
-              <span className="text-lg font-medium text-slate-800">{user.phone}</span>
-            </div>
-            <div className="grid grid-cols-[140px_1fr] items-center">
-              <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Role</span>
-              <span className="inline-block px-4 py-2 text-sm font-semibold bg-indigo-100 text-indigo-700 rounded-lg w-fit">
-                {user.authorities ? user.authorities[0].authority : 'User'}
-              </span>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-4 mt-8">
-              <button
-                onClick={() => setEditMode(true)}
-                className="flex-1 px-6 py-3 bg-indigo-700 text-white font-semibold rounded-lg hover:bg-indigo-800 transition-colors duration-200"
-                aria-label="Edit profile"
-              >
-                Edit Profile
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex-1 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors duration-200"
-                aria-label="Logout"
-              >
-                Logout
-              </button>
+    <div className="max-w-4xl mx-auto pb-20 animate-fade-in px-4">
+      {/* Profile Header Card */}
+      <div className="card p-10 mb-10 overflow-hidden relative border-slate-100 shadow-2xl">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-50 rounded-full -mr-40 -mt-40 opacity-40"></div>
+        <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+          <div className="relative group">
+            <div className="w-32 h-32 rounded-3xl bg-slate-900 flex items-center justify-center shadow-2xl transform transition-transform group-hover:scale-105">
+              <svg className="w-16 h-16 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
             </div>
           </div>
-        ) : (
-          // Edit Mode Form
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">First Name</label>
-                <input name="firstName" value={formData.firstName || ''} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Last Name</label>
-                <input name="lastName" value={formData.lastName || ''} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Email</label>
-              <input name="email" value={formData.email || ''} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Phone</label>
-              <input name="phone" value={formData.phone || ''} onChange={handleInputChange} className="w-full px-4 py-2 border rounded-lg" />
+
+          <div className="text-center md:text-left">
+            <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tighter">
+              {user.firstName} {user.lastName}
+            </h1>
+            <div className="flex flex-wrap justify-center md:justify-start gap-3 items-center">
+              <span className="text-indigo-600 font-bold tracking-widest text-xs uppercase">@{user.username}</span>
+              <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
+              <span className="badge badge-primary scale-90">{user.authorities ? user.authorities[0].authority : 'Standard User'}</span>
             </div>
 
-            <div className="flex items-center gap-4 mt-8">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 px-6 py-3 bg-indigo-700 text-white font-semibold rounded-lg hover:bg-indigo-800 transition-colors duration-200"
-              >
-                {loading ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                type="button"
-                onClick={() => { setEditMode(false); setFormData(user); }}
-                className="flex-1 px-6 py-3 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition-colors duration-200"
-              >
-                Cancel
-              </button>
+            {!editMode && (
+              <div className="mt-8">
+                <button
+                  onClick={() => setEditMode(true)}
+                  className="btn-primary h-11 px-8 shadow-indigo-100 shadow-xl"
+                >
+                  Edit Profile
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full">
+        <div className="card p-8 border-slate-100 shadow-lg">
+          <h2 className="text-xl font-bold text-slate-900 mb-8 border-b border-slate-50 pb-4">
+            {editMode ? 'Edit Account Details' : 'Account Information'}
+          </h2>
+
+          {editMode ? (
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="label text-[10px] font-black uppercase tracking-widest mb-2 block">First Name</label>
+                  <input
+                    name="firstName"
+                    value={formData.firstName || ''}
+                    onChange={handleInputChange}
+                    className="input-field h-12"
+                    placeholder="e.g. John"
+                  />
+                </div>
+                <div>
+                  <label className="label text-[10px] font-black uppercase tracking-widest mb-2 block">Last Name</label>
+                  <input
+                    name="lastName"
+                    value={formData.lastName || ''}
+                    onChange={handleInputChange}
+                    className="input-field h-12"
+                    placeholder="e.g. Doe"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="label text-[10px] font-black uppercase tracking-widest mb-2 block">Email Address</label>
+                  <input
+                    name="email"
+                    value={formData.email || ''}
+                    onChange={handleInputChange}
+                    className="input-field h-12"
+                    placeholder="john.doe@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="label text-[10px] font-black uppercase tracking-widest mb-2 block">Phone Number</label>
+                  <input
+                    name="phone"
+                    value={formData.phone || ''}
+                    onChange={handleInputChange}
+                    className="input-field h-12"
+                    placeholder="+1 (555) 000-0000"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 pt-6 border-t border-slate-50">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary h-14 flex-grow font-black text-sm uppercase tracking-widest"
+                >
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setEditMode(false); setFormData(user); }}
+                  className="btn-ghost h-14 px-8 text-slate-400 font-bold hover:text-slate-900"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="space-y-8">
+              <div className="grid grid-cols-2 gap-8">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">User ID</p>
+                  <p className="font-mono text-sm font-bold text-slate-900 tracking-tight">#{user.id}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Username</p>
+                  <p className="text-sm font-bold text-slate-900 tracking-tight">@{user.username}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-8">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Full Name</p>
+                  <p className="text-lg font-bold text-slate-900">{user.firstName} {user.lastName}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Email Address</p>
+                  <p className="text-sm font-bold text-slate-900 underline decoration-indigo-100 decoration-2 underline-offset-4">{user.email}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Phone Number</p>
+                  <p className="text-sm font-bold text-slate-900">{user.phone || 'Not provided'}</p>
+                </div>
+              </div>
             </div>
-          </form>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

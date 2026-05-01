@@ -7,7 +7,6 @@ import com.exam.model.JwtResponse;
 import com.exam.model.User;
 import com.exam.service.impl.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -37,9 +36,7 @@ public class AuthenticateController {
     public ResponseEntity<?> generateToken(@RequestBody JwtRequest jwtRequest) throws Exception {
 
         try {
-
             authenticate(jwtRequest.getUsername(), jwtRequest.getPassword());
-
         } catch (UserNotFoundException e) {
             e.printStackTrace();
             return ResponseEntity.status(404).body("User not found");
@@ -47,8 +44,6 @@ public class AuthenticateController {
             e.printStackTrace();
             return ResponseEntity.status(401).body("Invalid Credentials: " + e.getMessage());
         }
-
-        ///////////// authenticate
 
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(jwtRequest.getUsername());
         String token = this.jwtUtils.generateToken(userDetails);
@@ -59,9 +54,7 @@ public class AuthenticateController {
     private void authenticate(String username, String password) throws Exception {
 
         try {
-
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-
         } catch (DisabledException e) {
             throw new Exception("USER DISABLED " + e.getMessage());
         } catch (BadCredentialsException e) {
@@ -73,7 +66,6 @@ public class AuthenticateController {
     @GetMapping("/current-user")
     public User getCurrentUser(Principal principal) {
         return ((User) this.userDetailsService.loadUserByUsername(principal.getName()));
-
     }
 
 }

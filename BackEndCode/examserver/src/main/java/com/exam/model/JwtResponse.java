@@ -1,20 +1,14 @@
 package com.exam.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class JwtResponse {
-    String token;
-
-    public JwtResponse(String token) {
-        this.token = token;
-    }
-
-    public JwtResponse() {
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
+    private String token;
 }

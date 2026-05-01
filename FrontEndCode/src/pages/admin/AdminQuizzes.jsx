@@ -1,17 +1,3 @@
-// src/pages/admin/AdminQuizzes.jsx
-
-/**
- * AdminQuizzes.jsx
- * 
- * Purpose:
- * - Allows Admin to manage quizzes
- * - Admin can create, edit, and delete quizzes
- * 
- * TODO: Add form validation (required fields, positive numbers)
- * TODO: Add search and filter functionality
- * TODO: Add pagination for large quiz lists
- */
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllQuizzes, createQuiz, updateQuiz, deleteQuiz } from '../../services/quizService';
@@ -19,9 +5,11 @@ import { getAllCategories } from '../../services/categoryService';
 
 function AdminQuizzes() {
   const [quizzes, setQuizzes] = useState([]);
+  const [filteredQuizzes, setFilteredQuizzes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [formData, setFormData] = useState({
     qid: null,
@@ -30,7 +18,8 @@ function AdminQuizzes() {
     maxMarks: '',
     numberOfQuestions: '',
     category: '',
-    active: true
+    active: true,
+    timer: ''
   });
   const [editMode, setEditMode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -41,6 +30,14 @@ function AdminQuizzes() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const filtered = quizzes.filter(quiz =>
+      quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (quiz.category?.title && quiz.category.title.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+    setFilteredQuizzes(filtered);
+  }, [searchTerm, quizzes]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -50,6 +47,7 @@ function AdminQuizzes() {
         getAllCategories()
       ]);
       setQuizzes(quizzesData);
+      setFilteredQuizzes(quizzesData);
       setCategories(categoriesData);
     } catch (err) {
       setError(err.message);
@@ -80,30 +78,22 @@ function AdminQuizzes() {
         numberOfQuestions: parseInt(formData.numberOfQuestions),
         active: formData.active,
         timer: formData.timer ? parseInt(formData.timer) : null,
-        category: {
-          cid: parseInt(formData.category)
-        }
+        category: { cid: parseInt(formData.category) }
       };
 
       if (editMode) {
         quizPayload.qid = formData.qid;
         const updatedQuiz = await updateQuiz(quizPayload);
-        // Populate category object with full details
         const categoryDetails = categories.find(cat => cat.cid === parseInt(formData.category));
-        if (categoryDetails) {
-          updatedQuiz.category = categoryDetails;
-        }
-        setQuizzes(prevQuizzes => prevQuizzes.map(q => q.qid === formData.qid ? updatedQuiz : q));
-        setSuccessMessage('Quiz updated successfully!');
+        if (categoryDetails) updatedQuiz.category = categoryDetails;
+        setQuizzes(prev => prev.map(q => q.qid === formData.qid ? updatedQuiz : q));
+        setSuccessMessage('Quiz updated successfully.');
       } else {
         const newQuiz = await createQuiz(quizPayload);
-        // Populate category object with full details from the categories list
         const categoryDetails = categories.find(cat => cat.cid === parseInt(formData.category));
-        if (categoryDetails) {
-          newQuiz.category = categoryDetails;
-        }
-        setQuizzes(prevQuizzes => [...prevQuizzes, newQuiz]);
-        setSuccessMessage('Quiz created successfully!');
+        if (categoryDetails) newQuiz.category = categoryDetails;
+        setQuizzes(prev => [...prev, newQuiz]);
+        setSuccessMessage('New quiz added successfully.');
       }
 
       setFormData({
@@ -114,10 +104,10 @@ function AdminQuizzes() {
         numberOfQuestions: '',
         category: '',
         active: true,
-        timer: '' // Reset timer field
+        timer: ''
       });
       setEditMode(false);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err) {
       setSubmitError(err.message);
     } finally {
@@ -127,311 +117,299 @@ function AdminQuizzes() {
 
   const handleEdit = (quiz) => {
     setFormData({
-      qid: quiz.qId,
+      qid: quiz.qid,
       title: quiz.title,
       description: quiz.description,
       maxMarks: quiz.maxMarks,
       numberOfQuestions: quiz.numberOfQuestions,
       category: quiz.category?.cid || '',
       active: quiz.active,
-      timer: quiz.timer || '' // Populate timer field
+      timer: quiz.timer || ''
     });
     setEditMode(true);
     setSubmitError(null);
     setSuccessMessage(null);
-  };
-
-  const handleCancelEdit = () => {
-    setFormData({
-      qid: null,
-      title: '',
-      description: '',
-      maxMarks: '',
-      numberOfQuestions: '',
-      category: '',
-      active: true,
-      timer: '' // Reset timer field
-    });
-    setEditMode(false);
-    setSubmitError(null);
-    setSuccessMessage(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (qid) => {
-    if (!window.confirm('Are you sure you want to delete this quiz?')) {
-      return;
-    }
+    if (!window.confirm('Are you sure you want to delete this quiz? This cannot be undone.')) return;
 
     try {
       await deleteQuiz(qid);
-      setQuizzes(prevQuizzes => prevQuizzes.filter(q => q.qId !== qid));
-      setSuccessMessage('Quiz deleted successfully!');
-      setTimeout(() => setSuccessMessage(null), 3000);
+      setQuizzes(prev => prev.filter(q => q.qid !== qid));
+      setSuccessMessage('Quiz deleted successfully.');
+      setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err) {
       setSubmitError(err.message);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-lg text-slate-600">Loading quizzes...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-lg text-red-600">Error: {error}</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="max-w-7xl mx-auto flex flex-col items-center justify-center h-64">
+      <div className="spinner w-10 h-10 mb-4"></div>
+      <p className="text-slate-500 font-medium">Loading quizzes...</p>
+    </div>
+  );
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-slate-800 mb-2">Manage Quizzes</h1>
-        <p className="text-lg text-slate-600">Create, edit, and manage all quizzes in the system.</p>
-      </div>
-
-      {/* Add/Edit Quiz Form */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
-        <h2 className="text-2xl font-bold text-slate-800 mb-6">
-          {editMode ? 'Edit Quiz' : 'Add New Quiz'}
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="title" className="block text-sm font-semibold text-slate-700 mb-2">
-                Quiz Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                placeholder="Enter quiz title"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="category" className="block text-sm font-semibold text-slate-700 mb-2">
-                Category
-              </label>
-              <select
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select category</option>
-                {categories.map((cat) => (
-                  <option key={`cat-${cat.cid}`} value={cat.cid}>
-                    {cat.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="description" className="block text-sm font-semibold text-slate-700 mb-2">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Enter quiz description"
-              rows="3"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              required
-            ></textarea>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> {/* Changed to 3 columns */}
-            <div>
-              <label htmlFor="maxMarks" className="block text-sm font-semibold text-slate-700 mb-2">
-                Max Marks
-              </label>
-              <input
-                type="number"
-                id="maxMarks"
-                name="maxMarks"
-                value={formData.maxMarks}
-                onChange={handleInputChange}
-                placeholder="Enter max marks"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                required
-                min="1"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="numberOfQuestions" className="block text-sm font-semibold text-slate-700 mb-2">
-                Number of Questions
-              </label>
-              <input
-                type="number"
-                id="numberOfQuestions"
-                name="numberOfQuestions"
-                value={formData.numberOfQuestions}
-                onChange={handleInputChange}
-                placeholder="Enter number of questions"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                required
-                min="1"
-              />
-            </div>
-
-            {/* Timer Input */}
-            <div>
-              <label htmlFor="timer" className="block text-sm font-semibold text-slate-700 mb-2">
-                Timer (Minutes)
-              </label>
-              <input
-                type="number"
-                id="timer"
-                name="timer"
-                value={formData.timer}
-                onChange={handleInputChange}
-                placeholder="e.g. 30"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                min="1"
-              />
-              <p className="text-xs text-slate-500 mt-1">Leave blank for auto-calc (2 min/q)</p>
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="active"
-              name="active"
-              checked={formData.active}
-              onChange={handleInputChange}
-              className="w-4 h-4 text-indigo-700 border-gray-300 rounded focus:ring-indigo-500"
-            />
-            <label htmlFor="active" className="ml-2 text-sm font-semibold text-slate-700">
-              Active
-            </label>
-          </div>
-
-          {submitError && (
-            <p className="text-sm text-red-600 font-medium">{submitError}</p>
-          )}
-
-          {successMessage && (
-            <p className="text-sm text-green-600 font-medium">{successMessage}</p>
-          )}
-
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={submitting}
-              className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-200 ${submitting
-                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
-                : 'bg-indigo-700 text-white hover:bg-indigo-800'
-                }`}
-            >
-              {submitting ? (editMode ? 'Updating...' : 'Creating...') : (editMode ? 'Update Quiz' : 'Create Quiz')}
-            </button>
-
-            {editMode && (
-              <button
-                type="button"
-                onClick={handleCancelEdit}
-                disabled={submitting}
-                className="px-6 py-3 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition-colors duration-200"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-
-      {/* Quizzes Table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-slate-800">Existing Quizzes</h2>
+    <div className="max-w-7xl mx-auto animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">All Quizzes</h1>
+          <p className="text-lg text-slate-600">Manage all quizzes in the system.</p>
         </div>
+      </div>
 
-        {quizzes.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-lg text-slate-600">No quizzes found</p>
+      {/* Management Form Area */}
+      <div className={`card overflow-hidden transition-all duration-300 mb-10 ${editMode ? 'border-indigo-200 ring-4 ring-indigo-50 shadow-2xl' : 'border-slate-100 shadow-lg'}`}>
+        <div className={`h-1.5 ${editMode ? 'bg-indigo-600' : 'bg-slate-200'}`}></div>
+        <div className="p-8">
+          <h2 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${editMode ? 'bg-indigo-600' : 'bg-slate-900'} text-white shadow-lg`}>
+              {editMode ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              )}
+            </div>
+            {editMode ? 'Update Quiz' : 'Add New Quiz'}
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <div>
+                  <label className="label text-[10px] tracking-widest uppercase font-bold">Quiz Title</label>
+                  <input
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Finite Automata Theory Final"
+                    className="input-field h-12"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="label text-[10px] tracking-widest uppercase font-bold">Description</label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    placeholder="Provide a detailed description of the quiz..."
+                    rows="3"
+                    className="input-field resize-none"
+                    required
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="label text-[10px] tracking-widest uppercase font-bold">Category</label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="input-field h-12 bg-white"
+                    required
+                  >
+                    <option value="">Choose Class...</option>
+                    {categories.map((cat) => (
+                      <option key={cat.cid} value={cat.cid}>{cat.title}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 italic text-slate-400 text-xs leading-relaxed">
+                  Select a category for this quiz.
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-6 border-t border-slate-50">
+              <div>
+                <label className="label text-[10px] tracking-widest uppercase font-bold">Max Marks</label>
+                <input
+                  type="number"
+                  name="maxMarks"
+                  value={formData.maxMarks}
+                  onChange={handleInputChange}
+                  placeholder="100"
+                  className="input-field h-12"
+                  required
+                />
+              </div>
+              <div>
+                <label className="label text-[10px] tracking-widest uppercase font-bold">Number of Questions</label>
+                <input
+                  type="number"
+                  name="numberOfQuestions"
+                  value={formData.numberOfQuestions}
+                  onChange={handleInputChange}
+                  placeholder="25"
+                  className="input-field h-12"
+                  required
+                />
+              </div>
+              <div>
+                <label className="label text-[10px] tracking-widest uppercase font-bold">Time Limit (Min)</label>
+                <input
+                  type="number"
+                  name="timer"
+                  value={formData.timer}
+                  onChange={handleInputChange}
+                  placeholder="Auto-calc"
+                  className="input-field h-12"
+                />
+              </div>
+              <div className="flex items-center pt-8">
+                <label className="flex items-center cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      name="active"
+                      checked={formData.active}
+                      onChange={handleInputChange}
+                      className="sr-only"
+                    />
+                    <div className={`w-14 h-8 transition-colors rounded-full shadow-inner ${formData.active ? 'bg-indigo-600' : 'bg-slate-300'}`}></div>
+                    <div className={`absolute left-1 top-1 w-6 h-6 bg-white rounded-full transition-transform shadow-md ${formData.active ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                  </div>
+                  <span className="ml-4 text-xs font-black uppercase text-slate-600 tracking-widest">{formData.active ? 'Active' : 'Inactive'}</span>
+                </label>
+              </div>
+            </div>
+
+            {(submitError || successMessage) && (
+              <div className={`alert ${submitError ? 'alert-error' : 'alert-success'} animate-fade-in`}>
+                <p className="font-bold">{submitError ? 'SYNC FAILURE:' : 'SYNC SUCCESS:'} {submitError || successMessage}</p>
+              </div>
+            )}
+
+            <div className="flex items-center gap-4 pt-4">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="btn-primary px-8 h-14 min-w-[180px]"
+              >
+                {submitting ? 'Processing...' : editMode ? 'Save Changes' : 'Add Quiz'}
+              </button>
+              {editMode && (
+                <button
+                  type="button"
+                  onClick={() => setEditMode(false)}
+                  className="btn-ghost text-slate-400 font-bold hover:text-slate-900"
+                >
+                  Discard Parameters
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Registry List Area */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-slate-900 leading-none">Quiz List</h2>
+        <div className="relative w-full max-w-xs">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
-        ) : (
+          <input
+            type="text"
+            placeholder="Search quizzes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input-field pl-9 h-10 text-sm bg-slate-50 border-transparent focus:bg-white"
+          />
+        </div>
+      </div>
+
+      <div className="table-container shadow-2xl border-slate-100">
+        <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-gray-200">
+            <thead className="table-header">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide">Quiz Title</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide">Category</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide">Questions</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide">Max Marks</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide">Active</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide">Actions</th>
+                <th className="table-th text-left">Title & Category</th>
+                <th className="table-th text-center">Details</th>
+                <th className="table-th text-center">Status</th>
+                <th className="table-th text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {quizzes.map((quiz) => {
-                return (
-                  <tr key={`quiz-${quiz.qId}`} className="hover:bg-slate-50 transition-colors duration-150">
-                    <td className="px-6 py-4 text-sm font-medium text-slate-800">{quiz.title}</td>
-                    <td className="px-6 py-4 text-sm text-slate-700">{quiz.category?.title || 'N/A'}</td>
-                    <td className="px-6 py-4 text-sm text-slate-700">{quiz.numberOfQuestions}</td>
-                    <td className="px-6 py-4 text-sm text-slate-700">{quiz.maxMarks}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${quiz.active
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-700'
-                        }`}>
-                        {quiz.active ? 'Yes' : 'No'}
+            <tbody className="divide-y divide-slate-100">
+              {filteredQuizzes.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="px-6 py-20 text-center">
+                    <p className="text-slate-400 font-medium">No quizzes found.</p>
+                  </td>
+                </tr>
+              ) : (
+                filteredQuizzes.map((quiz) => (
+                  <tr key={quiz.qid} className="table-row group">
+                    <td className="table-td">
+                      <div className="max-w-md">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-bold text-slate-900 leading-tight">{quiz.title}</p>
+                          <span className="badge badge-primary scale-75 origin-left">{quiz.category?.title || 'Uncategorized'}</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 leading-relaxed line-clamp-1">{quiz.description}</p>
+                      </div>
+                    </td>
+                    <td className="table-td">
+                      <div className="flex items-center justify-center gap-4 text-center">
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Marks</p>
+                          <p className="text-sm font-black text-slate-800 leading-none">{quiz.maxMarks}</p>
+                        </div>
+                        <div className="h-4 w-px bg-slate-100"></div>
+                        <div>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">Questions</p>
+                          <p className="text-sm font-black text-slate-800 leading-none">{quiz.numberOfQuestions}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="table-td text-center">
+                      <span className={`badge ${quiz.active ? 'badge-success' : 'badge-danger'}`}>
+                        {quiz.active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
+                    <td className="table-td">
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
                         <button
                           onClick={() => handleEdit(quiz)}
-                          className="px-4 py-2 bg-indigo-100 text-indigo-700 text-sm font-medium rounded-lg hover:bg-indigo-200 transition-colors duration-200"
-                          aria-label={`Edit ${quiz.title}`}
+                          className="btn-ghost btn-sm text-indigo-600 font-bold hover:bg-indigo-50"
+                          title="Edit"
                         >
                           Edit
                         </button>
                         <Link
-                          to={`/admin/quizzes/${quiz.qId}/questions`}
-                          className="px-4 py-2 bg-teal-100 text-teal-700 text-sm font-medium rounded-lg hover:bg-teal-200 transition-colors duration-200"
-                          aria-label={`Manage questions for ${quiz.title}`}
+                          to={`/admin/quizzes/${quiz.qid}/questions`}
+                          className="btn-ghost btn-sm text-emerald-600 font-bold hover:bg-emerald-50"
+                          title="Questions"
                         >
                           Questions
                         </Link>
                         <button
-                          onClick={() => handleDelete(quiz.qId)}
-                          className="px-4 py-2 bg-red-100 text-red-700 text-sm font-medium rounded-lg hover:bg-red-200 transition-colors duration-200"
-                          aria-label={`Delete ${quiz.title}`}
+                          onClick={() => handleDelete(quiz.qid)}
+                          className="btn-ghost btn-sm text-red-600 font-bold hover:bg-red-50"
+                          title="Delete"
                         >
                           Delete
                         </button>
                       </div>
                     </td>
                   </tr>
-                );
-              })}
+                ))
+              )}
             </tbody>
           </table>
-        )}
+        </div>
       </div>
     </div>
   );

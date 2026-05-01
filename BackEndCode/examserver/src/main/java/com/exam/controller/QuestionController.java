@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.management.Query;
 import java.util.*;
 
 @RestController
@@ -46,10 +45,13 @@ public class QuestionController {
 
         Quiz quiz = this.quizService.getQuiz(qid);
         Set<Question> questions = quiz.getQuestions();
-        List list = new ArrayList(questions);
+        List<Question> list = new ArrayList<>(questions);
         if (list.size() > quiz.getNumberOfQuestions()) {
-            list = list.subList(0, quiz.getNumberOfQuestions() + 1);
+            list = list.subList(0, quiz.getNumberOfQuestions());
         }
+        list.forEach((q) -> {
+            q.setAnswer(null);
+        });
         Collections.shuffle(list);
         return ResponseEntity.ok(list);
 
@@ -58,7 +60,7 @@ public class QuestionController {
     @GetMapping("/quiz/all/{qid}")
     public ResponseEntity<?> getQuestionsOfQuizAdmin(@PathVariable("qid") Long qid) {
         Quiz quiz = new Quiz();
-        quiz.setqId(qid);
+        quiz.setQId(qid);
         Set<Question> questionsOfQuiz = this.service.getQuestionsOfQuiz(quiz);
         return ResponseEntity.ok(questionsOfQuiz);
 
@@ -101,13 +103,16 @@ public class QuestionController {
         // Get the quiz from the first question to calculate marks
         Quiz quiz = null;
         if (!questions.isEmpty() && questions.get(0).getQuiz() != null) {
-            Long quizId = questions.get(0).getQuiz().getqId();
+            Long quizId = questions.get(0).getQuiz().getQId();
             quiz = this.quizService.getQuiz(quizId);
         }
 
         if (quiz == null || quiz.getMaxMarks() == null) {
             return ResponseEntity.badRequest().body("Invalid quiz data");
         }
+
+        double maxMarks = (double) quiz.getMaxMarks();
+        double marksSingle = maxMarks / questions.size();
 
         for (Question q : questions) {
             // Fetch full question detail from DB
@@ -124,7 +129,6 @@ public class QuestionController {
 
             if (question.getAnswer().equals(q.getGivenAnswer())) {
                 correctAnswers++;
-                double marksSingle = Double.parseDouble(quiz.getMaxMarks() + "") / questions.size();
                 marksGot += marksSingle;
             }
 
@@ -159,7 +163,7 @@ public class QuestionController {
             }
 
             com.exam.model.exam.Result savedResult = this.resultService.saveResult(result);
-            responseMap.put("rId", savedResult.getrId());
+            responseMap.put("rId", savedResult.getRId());
 
         } catch (Exception e) {
             System.err.println("Error saving result: " + e.getMessage());

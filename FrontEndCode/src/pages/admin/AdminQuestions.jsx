@@ -1,16 +1,3 @@
-// src/pages/admin/AdminQuestions.jsx
-
-/**
- * AdminQuestions.jsx
- * 
- * Purpose:
- * - Allows Admin to manage questions for a specific quiz
- * - Admin can add, edit, and delete questions
- * 
- * TODO: Add form validation (required fields, correct answer selection)
- * TODO: Add pagination for large question lists
- */
-
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getQuestionsForAdmin, createQuestion, updateQuestion, deleteQuestion, getQuiz } from '../../services/questionService';
@@ -80,20 +67,18 @@ function AdminQuestions() {
         option3: formData.option3,
         option4: formData.option4,
         answer: formData.answer,
-        quiz: {
-          qId: parseInt(quizId)
-        }
+        quiz: { qid: parseInt(quizId) }
       };
 
       if (editMode) {
         questionPayload.quesId = formData.quesId;
         const updatedQuestion = await updateQuestion(questionPayload);
-        setQuestions(prevQuestions => prevQuestions.map(q => q.quesId === formData.quesId ? updatedQuestion : q));
-        setSuccessMessage('Question updated successfully!');
+        setQuestions(prev => prev.map(q => q.quesId === formData.quesId ? updatedQuestion : q));
+        setSuccessMessage('Question data synchronized.');
       } else {
         const newQuestion = await createQuestion(questionPayload);
-        setQuestions(prevQuestions => [...prevQuestions, newQuestion]);
-        setSuccessMessage('Question created successfully!');
+        setQuestions(prev => [...prev, newQuestion]);
+        setSuccessMessage('New question integrated into dataset.');
       }
 
       setFormData({
@@ -106,7 +91,7 @@ function AdminQuestions() {
         answer: ''
       });
       setEditMode(false);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err) {
       setSubmitError(err.message);
     } finally {
@@ -127,6 +112,7 @@ function AdminQuestions() {
     setEditMode(true);
     setSubmitError(null);
     setSuccessMessage(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleCancelEdit = () => {
@@ -140,263 +126,216 @@ function AdminQuestions() {
       answer: ''
     });
     setEditMode(false);
-    setSubmitError(null);
-    setSuccessMessage(null);
   };
 
   const handleDelete = async (questionId) => {
-    if (!window.confirm('Are you sure you want to delete this question?')) {
-      return;
-    }
+    if (!window.confirm('Delete this question?')) return;
 
     try {
       await deleteQuestion(questionId);
-      setQuestions(prevQuestions => prevQuestions.filter(q => q.quesId !== questionId));
-      setSuccessMessage('Question deleted successfully!');
-      setTimeout(() => setSuccessMessage(null), 3000);
+      setQuestions(prev => prev.filter(q => q.quesId !== questionId));
+      setSuccessMessage('Question deleted successfully.');
+      setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err) {
       setSubmitError(err.message);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-lg text-slate-600">Loading questions...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-center h-64">
-          <p className="text-lg text-red-600">Error: {error}</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="max-w-7xl mx-auto flex flex-col items-center justify-center h-64">
+      <div className="spinner w-10 h-10 mb-4"></div>
+      <p className="text-slate-500 font-medium">Loading questions...</p>
+    </div>
+  );
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-slate-800 mb-2">Manage Questions</h1>
-        <p className="text-lg text-slate-600">Quiz: <span className="font-semibold text-indigo-700">{quizTitle}</span></p>
+    <div className="max-w-7xl mx-auto animate-fade-in">
+      {/* Header */}
+      <div className="mb-10">
+        <div className="flex items-center gap-2 mb-4">
+          <Link to="/admin/quizzes" className="text-sm font-bold text-indigo-600 hover:underline flex items-center gap-1">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Questions
+          </Link>
+          <span className="text-slate-300">/</span>
+          <span className="text-sm font-bold text-slate-400 capitalize">{quizTitle}</span>
+        </div>
+        <h1 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">Question Dataset</h1>
+        <p className="text-lg text-slate-600">Manage questions for this quiz.</p>
       </div>
 
-      {/* Add/Edit Question Form */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-8">
-        <h2 className="text-2xl font-bold text-slate-800 mb-6">
-          {editMode ? 'Edit Question' : 'Add New Question'}
-        </h2>
+      {/* Management Form Area */}
+      <div className={`card overflow-hidden transition-all duration-300 mb-10 ${editMode ? 'border-indigo-200 ring-4 ring-indigo-50 shadow-2xl' : 'border-slate-100 shadow-lg'}`}>
+        <div className={`h-1.5 ${editMode ? 'bg-indigo-600' : 'bg-slate-200'}`}></div>
+        <div className="p-8">
+          <h2 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${editMode ? 'bg-indigo-600' : 'bg-slate-900'} text-white shadow-lg`}>
+              {editMode ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+              )}
+            </div>
+            {editMode ? 'Update Question' : 'Add New Question'}
+          </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="content" className="block text-sm font-semibold text-slate-700 mb-2">
-              Question Content
-            </label>
-            <textarea
-              id="content"
-              name="content"
-              value={formData.content}
-              onChange={handleInputChange}
-              placeholder="Enter question text"
-              rows="3"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              required
-            ></textarea>
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div>
+                <label htmlFor="content" className="label text-[10px] uppercase tracking-widest font-bold">Question</label>
+                <textarea
+                  id="content"
+                  name="content"
+                  value={formData.content}
+                  onChange={handleInputChange}
+                  placeholder="Enter your question here..."
+                  rows="14"
+                  className="input-field resize-none h-full min-h-[300px]"
+                  required
+                ></textarea>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="option1" className="block text-sm font-semibold text-slate-700 mb-2">
-                Option 1
-              </label>
-              <input
-                type="text"
-                id="option1"
-                name="option1"
-                value={formData.option1}
-                onChange={handleInputChange}
-                placeholder="Enter option 1"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                required
-              />
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <label className="label text-[10px] uppercase tracking-widest font-bold">Options</label>
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="relative group">
+                      <span className="absolute left-3 top-3.5 text-[10px] font-black text-slate-300 group-hover:text-indigo-600 transition-colors">{String.fromCharCode(64 + i)}</span>
+                      <input
+                        type="text"
+                        name={`option${i}`}
+                        value={formData[`option${i}`]}
+                        onChange={handleInputChange}
+                        placeholder={`Option ${String.fromCharCode(64 + i)}`}
+                        className="input-field h-11 pl-8 text-sm"
+                        required
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <label htmlFor="answer" className="label text-[10px] uppercase tracking-widest font-bold">Correct Answer</label>
+                  <input
+                    type="text"
+                    id="answer"
+                    name="answer"
+                    value={formData.answer}
+                    onChange={handleInputChange}
+                    placeholder="Must exactly match one option above"
+                    className="input-field h-12 border-emerald-100 bg-emerald-50/20"
+                    required
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label htmlFor="option2" className="block text-sm font-semibold text-slate-700 mb-2">
-                Option 2
-              </label>
-              <input
-                type="text"
-                id="option2"
-                name="option2"
-                value={formData.option2}
-                onChange={handleInputChange}
-                placeholder="Enter option 2"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="option3" className="block text-sm font-semibold text-slate-700 mb-2">
-                Option 3
-              </label>
-              <input
-                type="text"
-                id="option3"
-                name="option3"
-                value={formData.option3}
-                onChange={handleInputChange}
-                placeholder="Enter option 3"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="option4" className="block text-sm font-semibold text-slate-700 mb-2">
-                Option 4
-              </label>
-              <input
-                type="text"
-                id="option4"
-                name="option4"
-                value={formData.option4}
-                onChange={handleInputChange}
-                placeholder="Enter option 4"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="answer" className="block text-sm font-semibold text-slate-700 mb-2">
-              Correct Answer
-            </label>
-            <input
-              type="text"
-              id="answer"
-              name="answer"
-              value={formData.answer}
-              onChange={handleInputChange}
-              placeholder="Enter correct answer text"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              required
-            />
-          </div>
-
-          {submitError && (
-            <p className="text-sm text-red-600 font-medium">{submitError}</p>
-          )}
-
-          {successMessage && (
-            <p className="text-sm text-green-600 font-medium">{successMessage}</p>
-          )}
-
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={submitting}
-              className={`px-6 py-3 font-semibold rounded-lg transition-colors duration-200 ${submitting
-                ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
-                : 'bg-indigo-700 text-white hover:bg-indigo-800'
-                }`}
-            >
-              {submitting ? (editMode ? 'Updating...' : 'Creating...') : (editMode ? 'Update Question' : 'Create Question')}
-            </button>
-
-            {editMode && (
-              <button
-                type="button"
-                onClick={handleCancelEdit}
-                disabled={submitting}
-                className="px-6 py-3 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition-colors duration-200"
-              >
-                Cancel
-              </button>
+            {(submitError || successMessage) && (
+              <div className={`alert ${submitError ? 'alert-error' : 'alert-success'} p-4 animate-fade-in`}>
+                <p className="text-xs font-bold">{submitError ? 'ERROR:' : 'SUCCESS:'} {submitError || successMessage}</p>
+              </div>
             )}
-          </div>
-        </form>
+
+            <div className="flex items-center gap-4 pt-6 border-t border-slate-50">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="btn-primary px-8 h-14 min-w-[180px]"
+              >
+                {submitting ? 'Processing...' : editMode ? 'Update Question' : 'Add Question'}
+              </button>
+              {editMode && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="btn-ghost text-slate-400 font-bold hover:text-slate-900"
+                >
+                  Discard Changes
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
       </div>
 
-      {/* Questions Table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-slate-800">Existing Questions</h2>
+      {/* List Area */}
+      <div className="flex flex-col gap-6">
+        <div className="px-6 py-4 flex items-center justify-between bg-slate-50 rounded-2xl border border-slate-100">
+          <h2 className="text-xl font-bold text-slate-900 leading-none">Question List</h2>
+          <span className="badge badge-primary">{questions.length} Items Total</span>
         </div>
 
         {questions.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-lg text-slate-600">No questions found</p>
+          <div className="p-20 text-center card bg-white border-dashed border-slate-200">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+              </svg>
+            </div>
+            <p className="text-slate-400 font-medium">No questions found for this quiz.</p>
           </div>
         ) : (
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide">ID</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide min-w-[250px]">Question Content</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide min-w-[180px]">Option 1</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide min-w-[180px]">Option 2</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide min-w-[180px]">Option 3</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide min-w-[180px]">Option 4</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide">Correct</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700 uppercase tracking-wide">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {questions.map((question) => (
-                <tr key={`question-${question.quesId}`} className="hover:bg-slate-50 transition-colors duration-150">
-                  <td className="px-6 py-4 text-sm text-slate-700">{question.quesId}</td>
-                  <td className="px-6 py-4 text-sm text-slate-800">{question.content}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{question.option1}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{question.option2}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{question.option3}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{question.option4}</td>
-                  <td className="px-6 py-4">
-                    <span className="inline-block px-3 py-1 text-xs font-bold bg-green-100 text-green-700 rounded-full">
-                      {question.answer}
+          <div className="space-y-6">
+            {questions.map((question, idx) => (
+              <div key={question.quesId} className="card p-8 group hover:border-indigo-100 transition-all duration-300">
+                <div className="flex items-start justify-between gap-6 mb-6">
+                  <div className="flex gap-4">
+                    <span className="w-8 h-8 rounded bg-slate-900 text-white flex items-center justify-center text-xs font-black shadow-lg">
+                      {idx + 1}
                     </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(question)}
-                        className="px-4 py-2 bg-indigo-100 text-indigo-700 text-sm font-medium rounded-lg hover:bg-indigo-200 transition-colors duration-200"
-                        aria-label={`Edit question ${question.quesId}`}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(question.quesId)}
-                        className="px-4 py-2 bg-red-100 text-red-700 text-sm font-medium rounded-lg hover:bg-red-200 transition-colors duration-200"
-                        aria-label={`Delete question ${question.quesId}`}
-                      >
-                        Delete
-                      </button>
+                    <div className="max-w-2xl">
+                      <p className="text-lg font-bold text-slate-900 mb-4 leading-relaxed">{question.content}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                        {[1, 2, 3, 4].map(opt => {
+                          const val = question[`option${opt}`];
+                          const isCorrect = val === question.answer;
+                          return (
+                            <div key={opt} className={`flex items-center gap-3 p-3 rounded-xl border ${isCorrect ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-slate-50/50 border-transparent text-slate-500'}`}>
+                              <span className={`text-[10px] font-black uppercase ${isCorrect ? 'text-emerald-400' : 'text-slate-300'}`}>{String.fromCharCode(64 + opt)}</span>
+                              <span className={`text-sm ${isCorrect ? 'font-bold' : 'font-medium'}`}>{val}</span>
+                              {isCorrect && (
+                                <svg className="w-4 h-4 ml-auto text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+                  </div>
 
-      {/* Back Link */}
-      <div className="mt-6">
-        <Link
-          to="/admin/quizzes"
-          className="inline-block px-6 py-3 bg-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-300 transition-colors duration-200"
-          aria-label="Back to quizzes"
-        >
-          Back to Quizzes
-        </Link>
+                  <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleEdit(question)}
+                      className="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                      title="Edit"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(question.quesId)}
+                      className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                      title="Delete"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

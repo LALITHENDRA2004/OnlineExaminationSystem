@@ -2,9 +2,18 @@ package com.exam.model;
 
 
 import javax.persistence.*;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.HashSet;
 import java.util.Set;
 
+
+@Setter
+@Getter
+@NoArgsConstructor
 @Entity
 @Table(name = "roles")
 public class Role {
@@ -18,36 +27,8 @@ public class Role {
     private Set<UserRole> userRoles=new HashSet<>();
 
 
-    public Role() {
-    }
-
-
-    public Set<UserRole> getUserRoles() {
-        return userRoles;
-    }
-
-    public void setUserRoles(Set<UserRole> userRoles) {
-        this.userRoles = userRoles;
-    }
-
     public Role(Long roleId, String roleName) {
         this.roleId = roleId;
-        this.roleName = roleName;
-    }
-
-    public Long getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(Long roleId) {
-        this.roleId = roleId;
-    }
-
-    public String getRoleName() {
-        return roleName;
-    }
-
-    public void setRoleName(String roleName) {
         this.roleName = roleName;
     }
 }

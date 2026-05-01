@@ -23,12 +23,12 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public Question addQuestion(Question question) {
-        if (question.getQuiz() == null || question.getQuiz().getqId() == null) {
+        if (question.getQuiz() == null || question.getQuiz().getQId() == null) {
             throw new RuntimeException("Quiz is required");
         }
 
         Quiz quiz = quizRepository.findById(
-            question.getQuiz().getqId()
+            question.getQuiz().getQId()
         ).orElseThrow(() -> new RuntimeException("Quiz not found"));
 
         if (
