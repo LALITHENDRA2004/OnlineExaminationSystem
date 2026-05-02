@@ -40,7 +40,7 @@ export const getActiveQuizzes = async () => {
 export const createQuiz = async (quiz) => {
   const token = localStorage.getItem('token');
 
-  const response = await fetch('http://localhost:8080/quiz/', {
+  const response = await fetch(`${BASE_URL}/quiz/`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -59,7 +59,7 @@ export const createQuiz = async (quiz) => {
 export const updateQuiz = async (quiz) => {
   const token = localStorage.getItem('token');
 
-  const response = await fetch('http://localhost:8080/quiz/', {
+  const response = await fetch(`${BASE_URL}/quiz/`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -81,7 +81,7 @@ export const deleteQuiz = async (qid) => {
   console.log('DELETE quiz id:', qid);
   console.log('TOKEN:', token);
 
-  const response = await fetch(`http://localhost:8080/quiz/${qid}`, {
+  const response = await fetch(`${BASE_URL}/quiz/${qid}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
