@@ -17,11 +17,20 @@ import java.util.*;
 @CrossOrigin("*")
 @RequestMapping("/question")
 public class QuestionController {
-    @Autowired
-    private QuestionService service;
+    private final QuestionService service;
+    private final QuizService quizService;
+    private final UserService userService;
+    private final ResultService resultService;
 
-    @Autowired
-    private QuizService quizService;
+    public QuestionController(QuestionService service,
+                              QuizService quizService,
+                              UserService userService,
+                              ResultService resultService) {
+        this.service = service;
+        this.quizService = quizService;
+        this.userService = userService;
+        this.resultService = resultService;
+    }
 
     // add question
     @PostMapping("/")
@@ -80,11 +89,6 @@ public class QuestionController {
         this.service.deleteQuestion(quesId);
     }
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private ResultService resultService;
 
     // get total question count
     @GetMapping("/count")
@@ -94,7 +98,7 @@ public class QuestionController {
 
     // eval quiz
     @PostMapping("/eval-quiz")
-    public ResponseEntity<?> evalQuiz(@RequestBody List<Question> questions, java.security.Principal principal) {
+    public ResponseEntity<?> evalQuiz(@RequestBody List<Question> questions, java.security.Principal principal) throws Exception {
         System.out.println(questions);
         double marksGot = 0;
         int correctAnswers = 0;
@@ -143,32 +147,22 @@ public class QuestionController {
         responseMap.put("attempted", attempted);
 
         // Save Result
-        try {
-            com.exam.model.User user = this.userService.getUser(principal.getName());
-            com.exam.model.exam.Result result = new com.exam.model.exam.Result();
-            result.setMarksGot(marksGot);
-            result.setCorrectAnswers(correctAnswers);
-            result.setAttempted(attempted);
-            result.setSubmitDate(new Date());
-            result.setUser(user);
-            result.setQuiz(quiz);
+        com.exam.model.User user = this.userService.getUser(principal.getName());
+        com.exam.model.exam.Result result = new com.exam.model.exam.Result();
+        result.setMarksGot(marksGot);
+        result.setCorrectAnswers(correctAnswers);
+        result.setAttempted(attempted);
+        result.setSubmitDate(new Date());
+        result.setUser(user);
+        result.setQuiz(quiz);
 
-            // Serialize responses
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                String responsesJson = mapper.writeValueAsString(questions);
-                result.setResponses(responsesJson);
-            } catch (Exception e) {
-                System.err.println("Error serializing responses: " + e.getMessage());
-            }
+        // Serialize responses
+        ObjectMapper mapper = new ObjectMapper();
+        String responsesJson = mapper.writeValueAsString(questions);
+        result.setResponses(responsesJson);
 
-            com.exam.model.exam.Result savedResult = this.resultService.saveResult(result);
-            responseMap.put("rId", savedResult.getRId());
-
-        } catch (Exception e) {
-            System.err.println("Error saving result: " + e.getMessage());
-            e.printStackTrace();
-        }
+        com.exam.model.exam.Result savedResult = this.resultService.saveResult(result);
+        responseMap.put("rId", savedResult.getRId());
 
         return ResponseEntity.ok(responseMap);
     }

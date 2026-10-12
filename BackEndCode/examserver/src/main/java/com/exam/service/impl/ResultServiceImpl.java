@@ -13,11 +13,13 @@ import java.util.List;
 @Service
 public class ResultServiceImpl implements ResultService {
 
-    @Autowired
-    private ResultRepository resultRepository;
+    private final ResultRepository resultRepository;
+    private final QuestionRepository questionRepository;
 
-    @Autowired
-    private QuestionRepository questionRepository;
+    public ResultServiceImpl(ResultRepository resultRepository, QuestionRepository questionRepository) {
+        this.resultRepository = resultRepository;
+        this.questionRepository = questionRepository;
+    }
 
     @Override
     public Result saveResult(Result result) {

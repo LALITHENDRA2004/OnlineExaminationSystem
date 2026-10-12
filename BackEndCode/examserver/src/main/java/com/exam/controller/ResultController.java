@@ -19,11 +19,13 @@ import java.util.List;
 @RequestMapping("/result")
 public class ResultController {
 
-    @Autowired
-    private ResultService resultService;
+    private final ResultService resultService;
+    private final UserService userService;
 
-    @Autowired
-    private UserService userService;
+    public ResultController(ResultService resultService, UserService userService) {
+        this.resultService = resultService;
+        this.userService = userService;
+    }
 
     @GetMapping("/current-user")
     public ResponseEntity<?> getResultsByName(Principal principal) {

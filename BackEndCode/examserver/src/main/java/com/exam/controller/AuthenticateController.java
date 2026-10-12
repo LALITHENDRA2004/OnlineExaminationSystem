@@ -1,16 +1,12 @@
 package com.exam.controller;
 
 import com.exam.config.JwtUtils;
-import com.exam.exception.UserNotFoundException;
 import com.exam.model.JwtRequest;
 import com.exam.model.JwtResponse;
 import com.exam.model.User;
 import com.exam.service.impl.UserDetailsServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -21,45 +17,29 @@ import java.security.Principal;
 @CrossOrigin("*")
 public class AuthenticateController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsServiceImpl userDetailsService;
+    private final JwtUtils jwtUtils;
 
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
-
-    @Autowired
-    private JwtUtils jwtUtils;
+    public AuthenticateController(AuthenticationManager authenticationManager,
+                                  UserDetailsServiceImpl userDetailsService,
+                                  JwtUtils jwtUtils) {
+        this.authenticationManager = authenticationManager;
+        this.userDetailsService = userDetailsService;
+        this.jwtUtils = jwtUtils;
+    }
 
     // generate token
-
     @PostMapping("/generate-token")
     public ResponseEntity<?> generateToken(@RequestBody JwtRequest jwtRequest) throws Exception {
-
-        try {
-            authenticate(jwtRequest.getUsername(), jwtRequest.getPassword());
-        } catch (UserNotFoundException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(404).body("User not found");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(401).body("Invalid Credentials: " + e.getMessage());
-        }
-
+        authenticate(jwtRequest.getUsername(), jwtRequest.getPassword());
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(jwtRequest.getUsername());
         String token = this.jwtUtils.generateToken(userDetails);
         return ResponseEntity.ok(new JwtResponse(token));
-
     }
 
-    private void authenticate(String username, String password) throws Exception {
-
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        } catch (DisabledException e) {
-            throw new Exception("USER DISABLED " + e.getMessage());
-        } catch (BadCredentialsException e) {
-            throw new Exception("Invalid Credentials " + e.getMessage());
-        }
+    private void authenticate(String username, String password) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
     }
 
     // return the details of current user

@@ -16,11 +16,13 @@ import java.util.Set;
 @Service
 @Transactional
 public class QuizServiceImpl implements QuizService {
-    @Autowired
-    private QuizRepository quizRepository;
+    private final QuizRepository quizRepository;
+    private final QuestionRepository questionRepository;
 
-    @Autowired
-    private QuestionRepository questionRepository;
+    public QuizServiceImpl(QuizRepository quizRepository, QuestionRepository questionRepository) {
+        this.quizRepository = quizRepository;
+        this.questionRepository = questionRepository;
+    }
 
     @Override
     public Quiz addQuiz(Quiz quiz) {

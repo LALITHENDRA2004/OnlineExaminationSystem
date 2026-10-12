@@ -6,7 +6,7 @@ import com.exam.model.Role;
 import com.exam.model.User;
 import com.exam.model.UserRole;
 import com.exam.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -19,17 +19,20 @@ import java.util.Set;
 @CrossOrigin("*")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    public UserController(UserService userService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+        this.userService = userService;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    }
 
     // creating user
-    @PostMapping("/")
+    @PostMapping({"/", ""})
     public User createUser(@RequestBody User user) throws Exception {
 
         user.setProfile("default.png");
+        user.setEnabled(true);
         // encoding password with bcryptpasswordencoder
 
         user.setPassword(this.bCryptPasswordEncoder.encode(user.getPassword()));
@@ -61,30 +64,7 @@ public class UserController {
         this.userService.deleteUser(userId);
     }
 
-    // update api
 
-    @ExceptionHandler(UserFoundException.class)
-    public ResponseEntity<?> exceptionHandler(UserFoundException ex) {
-        // Return proper JSON error response with 400 Bad Request status
-        return ResponseEntity.badRequest().body(new ErrorResponse(ex.getMessage()));
-    }
-
-    // Simple error response class for JSON serialization
-    static class ErrorResponse {
-        private String message;
-
-        public ErrorResponse(String message) {
-            this.message = message;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-    }
 
     @GetMapping("/")
     public ResponseEntity<?> getAllUsers() {

@@ -14,11 +14,13 @@ import java.util.Set;
 @Service
 public class QuestionServiceImpl implements QuestionService {
 
-    @Autowired
-    private QuestionRepository questionRepository;
+    private final QuestionRepository questionRepository;
+    private final QuizRepository quizRepository;
 
-    @Autowired
-    private QuizRepository quizRepository;
+    public QuestionServiceImpl(QuestionRepository questionRepository, QuizRepository quizRepository) {
+        this.questionRepository = questionRepository;
+        this.quizRepository = quizRepository;
+    }
 
 
     @Override

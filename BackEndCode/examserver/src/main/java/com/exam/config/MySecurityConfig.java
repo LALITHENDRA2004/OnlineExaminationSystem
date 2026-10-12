@@ -22,15 +22,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class MySecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private JwtAuthenticationEntryPoint unauthorizedHandler;
+    private final JwtAuthenticationEntryPoint unauthorizedHandler;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final UserDetailsServiceImpl userDetailsServiceImpl;
 
-    @Autowired
-    private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-
-    @Autowired
-    private UserDetailsServiceImpl userDetailsServiceImpl;
+    public MySecurityConfig(JwtAuthenticationEntryPoint unauthorizedHandler,
+                            JwtAuthenticationFilter jwtAuthenticationFilter,
+                            UserDetailsServiceImpl userDetailsServiceImpl) {
+        this.unauthorizedHandler = unauthorizedHandler;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.userDetailsServiceImpl = userDetailsServiceImpl;
+    }
 
     @Override
     @Bean
@@ -49,6 +51,18 @@ public class MySecurityConfig extends WebSecurityConfigurerAdapter {
         auth.userDetailsService(this.userDetailsServiceImpl).passwordEncoder(passwordEncoder());
     }
 
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+        org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
+        configuration.setAllowedOriginPatterns(java.util.Collections.singletonList("*"));
+        configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(java.util.Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
@@ -57,9 +71,9 @@ public class MySecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf()
                 .disable()
                 .cors()
-                .disable()
+                .and()
                 .authorizeRequests()
-                .antMatchers("/generate-token", "/user/").permitAll()
+                .antMatchers("/generate-token", "/user/", "/user").permitAll()
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
                 .anyRequest().authenticated()
                 .and()

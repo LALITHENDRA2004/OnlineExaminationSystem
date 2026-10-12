@@ -41,7 +41,10 @@ function Login() {
         console.log('Logged in user:', user);
 
         // Redirect based on role
-        if (user.authorities[0].authority === 'ADMIN') {
+        const isAdmin = user?.authorities?.some(
+          (auth) => auth.authority === 'ADMIN'
+        );
+        if (isAdmin) {
           navigate('/admin/dashboard');
         } else {
           navigate('/student/dashboard');
@@ -51,7 +54,7 @@ function Login() {
       }
     } catch (err) {
       console.error(err);
-      setError('Invalid username or password');
+      setError(err.message || 'Invalid username or password');
     }
   };
 

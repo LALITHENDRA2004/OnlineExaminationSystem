@@ -6,7 +6,6 @@ import com.exam.model.User;
 import com.exam.model.UserRole;
 import com.exam.repo.QuizRepository;
 import com.exam.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,14 +18,15 @@ import java.util.Set;
 @SpringBootApplication
 public class ExamserverApplication implements CommandLineRunner {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    public final QuizRepository quizRepository;
 
-    @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-
-    @Autowired
-    public QuizRepository quizRepository;
+    public ExamserverApplication(UserService userService, BCryptPasswordEncoder bCryptPasswordEncoder, QuizRepository quizRepository) {
+        this.userService = userService;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.quizRepository = quizRepository;
+    }
 
     public static void main(String[] args) {
 
@@ -69,6 +69,33 @@ public class ExamserverApplication implements CommandLineRunner {
 
             User user1 = this.userService.createUser(user, userRoleSet);
             System.out.println(user1.getUsername());
+
+            // Seed default Student user if not exists
+            String studentUsername = "student";
+            User existingStudent = this.userService.getUser(studentUsername);
+            if (existingStudent == null) {
+                User student = new User();
+                student.setFirstName("Student");
+                student.setLastName("User");
+                student.setUsername(studentUsername);
+                student.setPassword(this.bCryptPasswordEncoder.encode("12345"));
+                student.setEmail("student@gmail.com");
+                student.setEnabled(true);
+                student.setProfile("default.png");
+
+                Role role2 = new Role();
+                role2.setRoleId(45L);
+                role2.setRoleName("NORMAL");
+
+                Set<UserRole> studentRoleSet = new HashSet<>();
+                UserRole studentUserRole = new UserRole();
+                studentUserRole.setRole(role2);
+                studentUserRole.setUser(student);
+                studentRoleSet.add(studentUserRole);
+
+                User createdStudent = this.userService.createUser(student, studentRoleSet);
+                System.out.println("Created student user: " + createdStudent.getUsername());
+            }
 
         } catch (UserFoundException e) {
             e.printStackTrace();

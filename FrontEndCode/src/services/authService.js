@@ -52,7 +52,14 @@ export const loginUser = async (loginDetail) => {
   });
 
   if (!response.ok) {
-    throw new Error('Login failed');
+    let errorMsg = 'Login failed';
+    try {
+      const errorData = await response.json();
+      errorMsg = errorData.message || errorMsg;
+    } catch (e) {
+      // response body might not be json
+    }
+    throw new Error(errorMsg);
   }
 
   return response.json();

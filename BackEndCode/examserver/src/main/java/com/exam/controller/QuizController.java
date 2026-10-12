@@ -13,8 +13,11 @@ import java.util.List;
 @CrossOrigin("*")
 @RequestMapping("/quiz")
 public class QuizController {
-    @Autowired
-    private QuizService quizService;
+    private final QuizService quizService;
+
+    public QuizController(QuizService quizService) {
+        this.quizService = quizService;
+    }
 
     //add quiz service
     @PostMapping("/")
