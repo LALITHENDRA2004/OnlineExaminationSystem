@@ -1,8 +1,7 @@
 package com.exam.controller;
 
-// import com.exam.helper.UserNotFoundException;
 // import org.apache.coyote.Response;
-import com.exam.helper.UserFoundException;
+import com.exam.exception.UserFoundException;
 import com.exam.model.Role;
 import com.exam.model.User;
 import com.exam.model.UserRole;

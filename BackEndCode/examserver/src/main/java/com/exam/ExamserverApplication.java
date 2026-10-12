@@ -1,6 +1,6 @@
 package com.exam;
 
-import com.exam.helper.UserFoundException;
+import com.exam.exception.UserFoundException;
 import com.exam.model.Role;
 import com.exam.model.User;
 import com.exam.model.UserRole;

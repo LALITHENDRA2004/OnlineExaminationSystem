@@ -1,4 +1,4 @@
-package com.exam.helper;
+package com.exam.exception;
 
 public class UserFoundException  extends  Exception{
 

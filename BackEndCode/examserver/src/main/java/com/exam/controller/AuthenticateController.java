@@ -1,7 +1,7 @@
 package com.exam.controller;
 
 import com.exam.config.JwtUtils;
-import com.exam.helper.UserNotFoundException;
+import com.exam.exception.UserNotFoundException;
 import com.exam.model.JwtRequest;
 import com.exam.model.JwtResponse;
 import com.exam.model.User;
